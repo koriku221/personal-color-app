@@ -1,0 +1,454 @@
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: inherit;
+  box-sizing: inherit;
+}
+
+html {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    color: #000;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 40px;
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+.file-name {
+    font-style: italic;
+    color: #666;
+    margin-left: 5px;
+}
+
+.btn-wrap{
+	margin: 10px;
+}
+
+.btn,
+a.btn,
+label.btn,
+button.btn {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+  position: relative;
+  display: inline-block;
+  padding: 1rem 4rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-transition: all 0.3s;
+  transition: all 0.3s;
+  text-align: center;
+  vertical-align: middle;
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  color: #212529;
+  border-radius: 0.5rem;
+}
+
+a.btn-border,
+label.btn-border,
+button.btn-border {
+  margin-bottom: 12px;
+  padding: 10px;
+
+  -webkit-transition: all 0.3s;
+
+  transition: all 0.3s;
+
+  border: 2px solid #000;
+  background-image: -webkit-repeating-linear-gradient(
+    135deg,
+    #000,
+    #000 1px,
+    transparent 2px,
+    transparent 5px
+  );
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #000,
+    #000 1px,
+    transparent 2px,
+    transparent 5px
+  );
+  background-size: 7px 7px;
+
+  -webkit-backface-visibility: hidden;
+
+  backface-visibility: hidden;
+}
+
+a.btn-border span,
+label.btn-border span,
+button.btn-border span{
+  position: relative;
+
+  display: block;
+
+  padding: 1.25rem 3rem;
+
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+a.btn-border:hover,
+label.btn-border:hover,
+button.btn-border:hover {
+  margin: 4px 4px 12px;
+  padding: 6px;
+}
+
+
+a.btn-stripe,
+button.btn-stripe {
+  margin-bottom: 12px;
+  padding: 0;
+
+  -webkit-transition: all 0.3s;
+
+  transition: all 0.3s;
+
+  border-radius: 0;
+}
+
+a.btn-stripe span,
+button.btn-stripe span{
+  position: relative;
+
+  display: block;
+
+  padding: 1.25rem 3rem;
+
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+a.btn-stripe:before,
+button.btn-stripe:before {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 14px;
+
+  content: "";
+  -webkit-transition: all 0.3s;
+  transition: all 0.3s;
+
+  border: 2px solid #000;
+  border-top: 1px solid #000;
+  border-radius: 0 0 0.5rem 0.5rem;
+  background-image: -webkit-repeating-linear-gradient(
+    135deg,
+    #000,
+    #000 1px,
+    transparent 2px,
+    transparent 5px
+  );
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #000,
+    #000 1px,
+    transparent 2px,
+    transparent 5px
+  );
+  background-size: 7px 7px;
+
+  -webkit-backface-visibility: hidden;
+
+  backface-visibility: hidden;
+}
+
+a.btn-stripe:hover,
+button.btn-stripe:hover {
+  -webkit-transform: translate(0, 3px);
+  transform: translate(0, 3px);
+}
+
+a.btn-stripe:hover:before,
+button.btn-stripe:hover:before {
+  bottom: -5px;
+}
+
+a.btn-stripe:active,
+button.btn-stripe:active {
+  -webkit-transform: translate(0, 7px);
+  transform: translate(0, 7px);
+}
+
+a.btn-stripe:active:before,
+button.btn-stripe:active:before {
+  bottom: -1px;
+}
+
+h2 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: #000;
+    font-size: 1.8em;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+    width: 100%;
+    text-align: left;
+}
+
+#pdfPreviewContainer {
+    width: 100%;
+    border: 2px solid #000;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    min-height: 300px; /* Minimum height for the preview area */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Ensure embed content stays within bounds */
+    margin-top: 10px;
+}
+
+#pdfPreviewContainer embed {
+    border: none;
+    display: block; /* Remove extra space below embed */
+}
+
+#pdfPreviewContainer p {
+    color: #888;
+    font-style: italic;
+}
+
+/* Loading Overlay Styles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: white;
+    font-size: 1.5em;
+    display: none; /* Hidden by default */
+}
+
+.loading-spinner {
+    border: 8px solid rgba(255, 255, 255, 0.3);
+    border-top: 8px solid #007bff;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 画像プレビューコンテナのスタイル */
+.image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* 中央揃え */
+    align-items: center;
+    gap: 10px; /* 画像間のスペース */
+    margin: 20px;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 10px;
+    min-height: 100px;
+    background-color: #f9f9f9;
+    overflow-y: auto; /* 縦方向にスクロール可能にする */
+    max-height: 200px; /* 最大高さを設定 */
+}
+
+/* 各画像プレビューアイテムのスタイル */
+.image-preview-item {
+    position: relative;
+    width: 100px; /* プレビューアイテムの固定幅 */
+    height: 100px; /* プレビューアイテムの固定高さ */
+    border: 1px solid #eee;
+    background-color: #fff;
+    display: flex; /* 画像とボタンをflexで配置 */
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box; /* パディングとボーダーを幅と高さに含める */
+}
+
+/* 各画像プレビューのスタイル */
+.image-preview {
+    max-width: calc(100% - 10px); /* 親要素の幅からパディング分を引く */
+    max-height: calc(100% - 10px); /* 親要素の高さからパディング分を引く */
+    object-fit: contain; /* アスペクト比を維持してコンテナに収める */
+    padding: 5px; /* 画像自体にパディングを設定 */
+}
+
+/* 削除ボタンのスタイル */
+.remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 0.8em;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+    padding: 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease;
+}
+
+.remove-image-btn:hover {
+    background-color: #c0392b;
+}
+
+.image-preview-container p {
+    color: #888;
+    font-style: italic;
+}
+
+/* ドラッグ中のアイテムのスタイル */
+.image-preview-item.dragging {
+    opacity: 0.5;
+    border: 2px dashed #007bff;
+}
+
+/* リアルタイムプレビューコンテナのスタイル */
+.realtime-preview-container {
+    position: relative;
+    width: 100%; /* 親要素の幅に合わせる */
+    max-width: 600px; /* 最大幅を制限 */
+    /* height: 400px; */ /* 高さを固定しない */
+    aspect-ratio: 595.28 / 841.89; /* デフォルトのA4縦横比 */
+    margin: 20px auto;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* はみ出しは表示しない */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: italic;
+    color: #888;
+    flex-shrink: 0; /* 縮小しない */
+}
+
+.realtime-preview-container p {
+    text-align: center;
+}
+
+/* リアルタイムプレビュー内の画像スタイル */
+.realtime-preview-image {
+    position: absolute;
+    border: 1px dashed #007bff; /* 配置を示すためのボーダー */
+    box-sizing: border-box;
+    object-fit: contain;
+}
+
+/* オプショングループのスタイル */
+.options-group {
+    margin-top: 30px;
+    padding: 20px;
+    border: 2px solid #000;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    width: 100%;
+    max-width: 600px;
+    text-align: left;
+}
+
+.options-group h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #000;
+    font-size: 1.5em;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+.options-group .input-group {
+    flex-direction: row; /* ラベルと入力を横並びに */
+    justify-content: space-between; /* 左右に配置 */
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.options-group label {
+    margin-bottom: 0; /* 上書き */
+    margin-right: 10px;
+    flex-shrink: 0; /* 縮小しない */
+}
+
+.options-group input[type="number"] {
+    width: 80px; /* 幅を固定 */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: right;
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDFに画像を貼り付け</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>PDFに画像を貼り付け</h1>
+        <div class="input-group">
+            <label for="pdfFile" class="btn btn-border"><span>PDFファイルを選択</span></label>
+            <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
+            <span id="pdfFileName" class="file-name">選択されていません</span>
+        </div>
+        <div class="input-group">
+            <label for="imageFiles" class="btn btn-border"><span>画像ファイルを選択 (複数選択可)</span></label>
+            <input type="file" id="imageFiles" accept="image/*" multiple style="display: none;">
+            <span id="imageFileNames" class="file-name">選択されていません</span>
+        </div>
+        <div id="imagePreviewContainer" class="image-preview-container">
+            <!-- アップロードされた画像のプレビューがここに表示されます -->
+        </div>
+
+        <div class="options-group">
+            <h3>画像配置オプション</h3>
+            <div class="input-group">
+                <label for="pageMargin">ページマージン (px):</label>
+                <input type="number" id="pageMargin" value="20" min="0">
+            </div>
+            <div class="input-group">
+                <label for="imageSpacing">画像間のスペース (px):</label>
+                <input type="number" id="imageSpacing" value="10" min="0">
+            </div>
+            <div class="input-group">
+                <label for="columns">列数 (0で自動):</label>
+                <input type="number" id="columns" value="0" min="0">
+            </div>
+        </div>
+
+		<div class="btn-wrap">
+        	<a id="embedButton" class="btn btn-stripe"><span>画像をPDFに貼り付け</span></a>
+		</div>
+
+        <h2>リアルタイム配置プレビュー</h2>
+        <div id="realtimePreviewContainer" class="realtime-preview-container">
+            <p>画像配置オプションを変更するとここにプレビューが表示されます。</p>
+        </div>
+
+        <h2>PDFプレビュー</h2>
+        <div id="pdfPreviewContainer">
+            <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
+        </div>
+		<div class="btn-wrap">
+        	<a id="downloadLink" class="btn btn-border" style="display:none;"><span>ダウンロード</span></a>
+		</div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>変換中...</p>
+    </div>
+
+    <script src="https://unpkg.com/pdf-lib"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
