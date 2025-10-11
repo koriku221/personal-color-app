@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "parcel index.html",
+    "start": "parcel index.html --host 0.0.0.0",
     "build": "parcel build index.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "iOS >= 10"
+  ],
   "devDependencies": {
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
@@ -22,5 +27,8 @@
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
     "vm-browserify": "^1.1.2"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^5.4.296"
   }
 }

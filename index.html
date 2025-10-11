@@ -37,13 +37,17 @@
                 <label for="columns">列数 (0で自動):</label>
                 <input type="number" id="columns" value="0" min="0">
             </div>
+            <div class="input-group">
+                <label for="pageNumber">貼り付けページ番号:</label>
+                <input type="number" id="pageNumber" value="1" min="1">
+            </div>
         </div>
 
 		<div class="btn-wrap">
         	<a id="embedButton" class="btn btn-stripe"><span>画像をPDFに貼り付け</span></a>
 		</div>
 
-        <h2>リアルタイム配置プレビュー</h2>
+        <h2>画像配置プレビュー</h2>
         <div id="realtimePreviewContainer" class="realtime-preview-container">
             <p>画像配置オプションを変更するとここにプレビューが表示されます。</p>
         </div>
