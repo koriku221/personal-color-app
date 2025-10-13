@@ -14,18 +14,20 @@ const imagePreviewContainer = document.getElementById('imagePreviewContainer'); 
 const pdfFileNameSpan = document.getElementById('pdfFileName');
 const imageFileNamesSpan = document.getElementById('imageFileNames'); // 複数画像ファイル名表示
 const loadingOverlay = document.getElementById('loadingOverlay');
-const pageMarginInput = document.getElementById('pageMargin');
-const imageSpacingInput = document.getElementById('imageSpacing');
-const columnsInput = document.getElementById('columns');
-const pageNumberInput = document.getElementById('pageNumber');
+const pageMarginSlider = document.getElementById('pageMarginSlider');
+const pageMarginNumber = document.getElementById('pageMarginNumber');
+const imageSpacingSlider = document.getElementById('imageSpacingSlider');
+const imageSpacingNumber = document.getElementById('imageSpacingNumber');
+const columnsSlider = document.getElementById('columnsSlider');
+const columnsNumber = document.getElementById('columnsNumber');
+const pageNumberSlider = document.getElementById('pageNumberSlider');
+const pageNumberNumber = document.getElementById('pageNumberNumber');
 const realtimePreviewContainer = document.getElementById('realtimePreviewContainer'); // リアルタイムプレビューコンテナ
 
 let selectedPdfFile = null;
 let pdfPageSize = { width: 595.28, height: 841.89 }; // A4のデフォルト値(pt)
 // selectedImageFilesをファイルオブジェクト、プレビュー用データURL、PDF埋め込み用データとタイプ、アスペクト比のペアの配列に変更
 let selectedImageFiles = []; // [{ file: File, previewUrl: string, pdfEmbedBytes: ArrayBuffer, pdfEmbedType: string, aspectRatio: number }]
-let draggedItem = null; // ドラッグ中のアイテムを保持
-
 // Function to display PDF preview
 function displayPdfPreview(file) {
     if (!file) {
@@ -77,116 +79,56 @@ function displayImagePreviews(imageFileObjects) {
         console.log(`displayImagePreviews: ファイル ${index} (${imageObj.file.name}) のプレビューを表示中...`);
         appendImageToPreview(imageObj.previewUrl, imageObj.file.name, index); // previewUrlを使用
     });
-
-    // ドラッグアンドドロップイベントリスナーを再設定
-    addDragAndDropListeners();
 }
 
 function appendImageToPreview(src, fileName, index) {
     const previewItem = document.createElement('div');
     previewItem.classList.add('image-preview-item');
-    previewItem.dataset.index = index; // 削除時に使用するインデックス
-    previewItem.draggable = true; // ドラッグ可能にする
+    previewItem.dataset.id = index; // SortableJSのためにdataset.idを使用
+
+    const dragHandle = document.createElement('div');
+    dragHandle.classList.add('drag-handle');
+    dragHandle.innerHTML = '<div></div><div></div><div></div>'; // 三本線アイコン
 
     const img = document.createElement('img');
     img.src = src;
     img.classList.add('image-preview');
     img.alt = fileName;
 
+    const fileNameSpan = document.createElement('span');
+    fileNameSpan.textContent = fileName;
+    fileNameSpan.classList.add('image-file-name');
+
     const removeButton = document.createElement('button');
     removeButton.classList.add('remove-image-btn');
     removeButton.textContent = 'X';
-    removeButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // ドラッグイベントと競合しないように
-        removeImage(index);
+    removeButton.addEventListener('click', () => {
+        removeImage(parseInt(previewItem.dataset.id)); // dataset.idで削除
     });
 
+    previewItem.appendChild(dragHandle);
     previewItem.appendChild(img);
+    previewItem.appendChild(fileNameSpan);
     previewItem.appendChild(removeButton);
     imagePreviewContainer.appendChild(previewItem);
     console.log(`displayImagePreviews: ファイル ${index} (${fileName}) の画像プレビューアイテムがコンテナに追加されました。`);
 }
 
-function addDragAndDropListeners() {
-    const items = imagePreviewContainer.querySelectorAll('.image-preview-item');
-    items.forEach(item => {
-        item.addEventListener('dragstart', (e) => {
-            draggedItem = item;
-            setTimeout(() => item.classList.add('dragging'), 0);
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', item.innerHTML); // Firefox対策
-        });
+function removeImage(idToRemove) {
+    console.log(`removeImage: ID ${idToRemove} の画像を削除します。`);
+    const indexToRemove = selectedImageFiles.findIndex(img => img.id === idToRemove);
 
-        item.addEventListener('dragend', () => {
-            draggedItem.classList.remove('dragging');
-            draggedItem = null;
-        });
-
-        item.addEventListener('dragover', (e) => {
-            e.preventDefault(); // ドロップを許可
-            if (e.target.closest('.image-preview-item') && e.target.closest('.image-preview-item') !== draggedItem) {
-                const targetItem = e.target.closest('.image-preview-item');
-                const bounding = targetItem.getBoundingClientRect();
-                const offset = bounding.x + (bounding.width / 2);
-                if (e.clientX < offset) {
-                    imagePreviewContainer.insertBefore(draggedItem, targetItem);
-                } else {
-                    imagePreviewContainer.insertBefore(draggedItem, targetItem.nextSibling);
-                }
-            }
-        });
-
-        item.addEventListener('drop', (e) => {
-            e.preventDefault();
-            // ドロップ処理はdragoverでDOMを操作しているので、ここでは何もしない
-        });
-    });
-
-    // コンテナ全体へのドロップイベント（アイテムがない場合など）
-    imagePreviewContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-    });
-
-    imagePreviewContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (draggedItem && !e.target.closest('.image-preview-item')) {
-            // アイテムがない場所にドロップされた場合、最後に追加
-            imagePreviewContainer.appendChild(draggedItem);
+    if (indexToRemove > -1) {
+        // URL.revokeObjectURLで以前作成したプレビュー用URLを解放
+        if (selectedImageFiles[indexToRemove] && selectedImageFiles[indexToRemove].previewUrl) {
+            URL.revokeObjectURL(selectedImageFiles[indexToRemove].previewUrl);
         }
-        updateImageOrder();
-    });
-}
-
-function updateImageOrder() {
-    const newOrderItems = Array.from(imagePreviewContainer.querySelectorAll('.image-preview-item'));
-    const reorderedSelectedImageFiles = [];
-    newOrderItems.forEach(item => {
-        const originalIndex = parseInt(item.dataset.index);
-        // originalIndexがselectedImageFilesの範囲内にあることを確認
-        if (originalIndex >= 0 && originalIndex < selectedImageFiles.length) {
-            reorderedSelectedImageFiles.push(selectedImageFiles[originalIndex]);
-        } else {
-            console.warn(`updateImageOrder: 無効なoriginalIndex ${originalIndex} が検出されました。`);
+        selectedImageFiles.splice(indexToRemove, 1); // 配列から削除
+        displayImagePreviews(selectedImageFiles); // プレビューを再描画
+        updateRealtimePreview(); // リアルタイムプレビューも更新
+        if (imageFileNamesSpan) {
+            imageFileNamesSpan.textContent = selectedImageFiles.length > 0 ? `${selectedImageFiles.length} 個の画像が選択されました` : '選択されていません';
         }
-    });
-    selectedImageFiles = reorderedSelectedImageFiles;
-    // 新しい順序でプレビューを再描画し、dataset.indexを更新
-    displayImagePreviews(selectedImageFiles);
-    updateRealtimePreview(); // リアルタイムプレビューも更新
-    console.log('画像の順序が更新されました:', selectedImageFiles.map(img => img.file.name));
-}
-
-function removeImage(indexToRemove) {
-    console.log(`removeImage: インデックス ${indexToRemove} の画像を削除します。`);
-    // URL.revokeObjectURLで以前作成したプレビュー用URLを解放
-    if (selectedImageFiles[indexToRemove] && selectedImageFiles[indexToRemove].previewUrl) {
-        URL.revokeObjectURL(selectedImageFiles[indexToRemove].previewUrl);
-    }
-    selectedImageFiles = selectedImageFiles.filter((_, index) => index !== indexToRemove);
-    displayImagePreviews(selectedImageFiles); // プレビューを再描画
-    updateRealtimePreview(); // リアルタイムプレビューも更新
-    if (imageFileNamesSpan) {
-        imageFileNamesSpan.textContent = selectedImageFiles.length > 0 ? `${selectedImageFiles.length} 個の画像が選択されました` : '選択されていません';
     }
 }
 
@@ -220,9 +162,9 @@ function updateRealtimePreview() {
     const scale = previewContainerWidth / pageWidth;
 
     // ユーザー設定オプションの取得
-    const margin = parseInt(pageMarginInput.value) || 0;
-    const imageSpacing = parseInt(imageSpacingInput.value) || 0;
-    const userColumns = parseInt(columnsInput.value) || 0;
+    const margin = parseInt(pageMarginNumber.value) || 0;
+    const imageSpacing = parseInt(imageSpacingNumber.value) || 0;
+    const userColumns = parseInt(columnsNumber.value) || 0;
 
     const numImages = selectedImageFiles.length;
     const usableWidth = pageWidth - 2 * margin;
@@ -364,6 +306,49 @@ async function renderPdfPageAsBackground() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // スライダーと数値入力の同期関数
+    function syncInputs(slider, numberInput) {
+        slider.value = numberInput.value;
+    }
+
+    // スライダーの変更を数値入力に反映
+    pageMarginSlider.addEventListener('input', () => {
+        pageMarginNumber.value = pageMarginSlider.value;
+        updateRealtimePreview();
+    });
+    imageSpacingSlider.addEventListener('input', () => {
+        imageSpacingNumber.value = imageSpacingSlider.value;
+        updateRealtimePreview();
+    });
+    columnsSlider.addEventListener('input', () => {
+        columnsNumber.value = columnsSlider.value;
+        updateRealtimePreview();
+    });
+    pageNumberSlider.addEventListener('input', () => {
+        pageNumberNumber.value = pageNumberSlider.value;
+        updateRealtimePreview();
+        renderPdfPageAsBackground(); // ページ番号変更時に背景も更新
+    });
+
+    // 数値入力の変更をスライダーに反映
+    pageMarginNumber.addEventListener('input', () => {
+        syncInputs(pageMarginSlider, pageMarginNumber);
+        updateRealtimePreview();
+    });
+    imageSpacingNumber.addEventListener('input', () => {
+        syncInputs(imageSpacingSlider, imageSpacingNumber);
+        updateRealtimePreview();
+    });
+    columnsNumber.addEventListener('input', () => {
+        syncInputs(columnsSlider, columnsNumber);
+        updateRealtimePreview();
+    });
+    pageNumberNumber.addEventListener('input', () => {
+        syncInputs(pageNumberSlider, pageNumberNumber);
+        updateRealtimePreview();
+        renderPdfPageAsBackground(); // ページ番号変更時に背景も更新
+    });
+
     pdfFile.addEventListener('change', async (event) => {
         const target = event.target;
         if (target.files && target.files.length > 0) {
@@ -377,8 +362,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pdfBytes = await selectedPdfFile.arrayBuffer();
                 const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
                 const pages = pdfDoc.getPages();
-                pageNumberInput.max = pages.length; // 最大ページ数を設定
-                pageNumberInput.value = 1; // PDFを変更したら1ページ目に戻す
+                
+                // ページ番号スライダーと数値入力の最大値を設定
+                pageNumberSlider.max = pages.length;
+                pageNumberNumber.max = pages.length;
+                pageNumberSlider.value = 1; // PDFを変更したら1ページ目に戻す
+                pageNumberNumber.value = 1; // PDFを変更したら1ページ目に戻す
 
                 const firstPage = pages[0];
                 const { width, height } = firstPage.getSize();
@@ -457,8 +446,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.src = previewUrl;
                 await new Promise(resolve => img.onload = resolve);
                 const aspectRatio = img.width / img.height;
+                const id = Date.now() + Math.random(); // ユニークなIDを生成
 
-                tempSelectedImageFiles.push({ file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio });
+                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio });
             }
             selectedImageFiles = tempSelectedImageFiles; // 処理後に置き換え
             displayImagePreviews(selectedImageFiles); // 置き換え後に呼び出す
@@ -491,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
             const pages = pdfDoc.getPages();
 
-            const pageNumber = parseInt(pageNumberInput.value) || 1;
+            const pageNumber = parseInt(pageNumberNumber.value) || 1; // 数値入力フィールドから値を取得
             if (pageNumber < 1 || pageNumber > pages.length) {
                 alert(`無効なページ番号です。1から${pages.length}の間で指定してください。`);
                 loadingOverlay.style.display = 'none';
@@ -502,9 +492,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
             // ユーザー設定オプションの取得
-            const margin = parseInt(pageMarginInput.value) || 0;
-            const imageSpacing = parseInt(imageSpacingInput.value) || 0;
-            const userColumns = parseInt(columnsInput.value) || 0;
+            const margin = parseInt(pageMarginNumber.value) || 0; // 数値入力フィールドから値を取得
+            const imageSpacing = parseInt(imageSpacingNumber.value) || 0; // 数値入力フィールドから値を取得
+            const userColumns = parseInt(columnsNumber.value) || 0; // 数値入力フィールドから値を取得
 
             // 画像を埋め込み、リサイズして配置
             const embeddedImages = [];
@@ -636,38 +626,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // オプション変更時にリアルタイムプレビューを更新するイベントリスナー
-    pageMarginInput.addEventListener('input', updateRealtimePreview);
-    imageSpacingInput.addEventListener('input', updateRealtimePreview);
-    columnsInput.addEventListener('input', updateRealtimePreview);
-
-    // ページ番号変更時にプレビューの縦横比と背景を更新するイベントリスナー
-    pageNumberInput.addEventListener('input', async () => {
-        if (!selectedPdfFile) return;
-
-        const pageNumber = parseInt(pageNumberInput.value) || 1;
-
-        try {
-            const pdfBytes = await selectedPdfFile.arrayBuffer();
-            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-            const pages = pdfDoc.getPages();
-
-            if (pageNumber < 1 || pageNumber > pages.length) {
-                return; // 無効なページ番号の場合は更新しない
-            }
-
-            const targetPage = pages[pageNumber - 1];
-            const { width, height } = targetPage.getSize();
-            pdfPageSize = { width, height }; // グローバル変数を更新
-            realtimePreviewContainer.style.aspectRatio = `${width} / ${height}`;
-            await renderPdfPageAsBackground(); // 背景を更新
-            updateRealtimePreview(); // プレビューを再描画
-        } catch (error) {
-            console.error('PDFのページサイズの取得に失敗しました:', error);
-        }
-    });
-
     // 初期表示
     displayImagePreviews([]);
     updateRealtimePreview();
+
+    // SortableJSの初期化
+    new Sortable(imagePreviewContainer, {
+        animation: 200,
+        ghostClass: 'sortable-ghost', // ドラッグ中のアイテムのスタイル
+        handle: '.drag-handle', // ドラッグハンドルを指定
+        onEnd: function (evt) {
+            const oldIndex = evt.oldIndex;
+            const newIndex = evt.newIndex;
+
+            // selectedImageFiles配列の順序を更新
+            const [movedItem] = selectedImageFiles.splice(oldIndex, 1);
+            selectedImageFiles.splice(newIndex, 0, movedItem);
+
+            updateRealtimePreview(); // リアルタイムプレビューも更新
+            console.log('画像の順序が更新されました:', selectedImageFiles.map(img => img.file.name));
+        }
+    });
 });

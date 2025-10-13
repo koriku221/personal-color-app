@@ -19,27 +19,39 @@
             <input type="file" id="imageFiles" accept="image/*" multiple style="display: none;">
             <span id="imageFileNames" class="file-name">選択されていません</span>
         </div>
-        <div id="imagePreviewContainer" class="image-preview-container">
+        <div id="imagePreviewContainer" class="image-preview-container sortable-list">
             <!-- アップロードされた画像のプレビューがここに表示されます -->
         </div>
 
         <div class="options-group">
             <h3>画像配置オプション</h3>
             <div class="input-group">
-                <label for="pageMargin">ページマージン (px):</label>
-                <input type="number" id="pageMargin" value="20" min="0">
+                <label for="pageMarginNumber">ページマージン (pt):</label>
+                <div class="input-controls">
+                    <input type="range" id="pageMarginSlider" value="20" min="0" max="100" step="1">
+                    <input type="number" id="pageMarginNumber" value="20" min="0" max="100">
+                </div>
             </div>
             <div class="input-group">
-                <label for="imageSpacing">画像間のスペース (px):</label>
-                <input type="number" id="imageSpacing" value="10" min="0">
+                <label for="imageSpacingNumber">画像間のスペース (pt):</label>
+                <div class="input-controls">
+                    <input type="range" id="imageSpacingSlider" value="10" min="0" max="50" step="1">
+                    <input type="number" id="imageSpacingNumber" value="10" min="0" max="50">
+                </div>
             </div>
             <div class="input-group">
-                <label for="columns">列数 (0で自動):</label>
-                <input type="number" id="columns" value="0" min="0">
+                <label for="columnsNumber">列数 (0で自動):</label>
+                <div class="input-controls">
+                    <input type="range" id="columnsSlider" value="0" min="0" max="5" step="1">
+                    <input type="number" id="columnsNumber" value="0" min="0" max="5">
+                </div>
             </div>
             <div class="input-group">
-                <label for="pageNumber">貼り付けページ番号:</label>
-                <input type="number" id="pageNumber" value="1" min="1">
+                <label for="pageNumberNumber">貼り付けページ番号:</label>
+                <div class="input-controls">
+                    <input type="range" id="pageNumberSlider" value="1" min="1" max="1" step="1">
+                    <input type="number" id="pageNumberNumber" value="1" min="1">
+                </div>
             </div>
         </div>
 
@@ -67,6 +79,7 @@
     </div>
 
     <script src="https://unpkg.com/pdf-lib"></script>
+    <script src="node_modules/sortablejs/Sortable.min.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>

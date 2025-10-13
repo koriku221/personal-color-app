@@ -306,39 +306,91 @@ h2 {
 /* 画像プレビューコンテナのスタイル */
 .image-preview-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center; /* 中央揃え */
-    align-items: center;
-    gap: 10px; /* 画像間のスペース */
-    margin: 20px;
-    border: 2px solid #000;
-    border-radius: 8px;
-    padding: 10px;
-    min-height: 100px;
-    background-color: #f9f9f9;
-    overflow-y: auto; /* 縦方向にスクロール可能にする */
-    max-height: 200px; /* 最大高さを設定 */
+    flex-direction: column; /* 縦方向にリスト形式で列挙 */
+    gap: 10px; /* アイテム間のスペース */
+    margin: 20px 0; /* 上下のマージンのみ残す */
+    /* border: none; */ /* 枠線を廃止 */
+    /* border-radius: 0; */ /* 角丸を廃止 */
+    padding: 0; /* パディングを廃止 */
+    min-height: auto; /* 最小高さを自動調整 */
+    background-color: transparent; /* 背景色を透明に */
+    /* overflow-y: auto; */ /* 縦方向にスクロール可能にする */
+    /* max-height: 300px; */ /* 最大高さを設定 */
+    align-items: center; /* 中央揃え */
+    justify-content: flex-start; /* リストの開始位置を上部に */
 }
 
 /* 各画像プレビューアイテムのスタイル */
 .image-preview-item {
     position: relative;
-    width: 100px; /* プレビューアイテムの固定幅 */
-    height: 100px; /* プレビューアイテムの固定高さ */
+    width: 90%; /* コンテナの幅に合わせる */
+    max-width: 400px; /* 最大幅を大きく */
+    height: 100px; /* アイテムの固定高さを大きく */
     border: 1px solid #eee;
     background-color: #fff;
-    display: flex; /* 画像とボタンをflexで配置 */
-    justify-content: center;
+    display: flex;
+    align-items: center; /* 垂直方向中央揃え */
+    justify-content: space-between; /* 要素間のスペースを均等に分散 */
+    padding: 5px 10px; /* 左右にパディングを追加 */
+    box-sizing: border-box;
+    cursor: grab; /* ドラッグ可能であることを示すカーソル */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* transition: transform 0.2s ease-in-out, box-shadow 0.2s ease; */ /* SortableJSのアニメーションと競合するため無効化 */
+}
+
+.image-preview-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* ドラッグハンドルのスタイル */
+.drag-handle {
+    width: 30px; /* さらに大きく */
+    height: 30px; /* さらに大きく */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around; /* 均等に配置 */
     align-items: center;
-    box-sizing: border-box; /* パディングとボーダーを幅と高さに含める */
+    cursor: grab;
+    margin-right: 10px;
+    padding: 5px 0; /* 上下のパディングで線間のスペースを調整 */
+    border-radius: 3px; /* 角を少し丸く */
+    transition: background-color 0.2s ease;
+}
+
+.drag-handle:hover {
+    background-color: #e0e0e0; /* ホバー時の背景色 */
+}
+
+.drag-handle div {
+    content: '';
+    display: block;
+    width: 80%; /* 線の長さを調整 */
+    height: 2px;
+    background-color: #dadada; /* 少し濃い色に */
+    border-radius: 1px; /* 線の角を丸く */
 }
 
 /* 各画像プレビューのスタイル */
 .image-preview {
-    max-width: calc(100% - 10px); /* 親要素の幅からパディング分を引く */
-    max-height: calc(100% - 10px); /* 親要素の高さからパディング分を引く */
-    object-fit: contain; /* アスペクト比を維持してコンテナに収める */
-    padding: 5px; /* 画像自体にパディングを設定 */
+    max-width: 80px; /* 画像の最大幅を大きく */
+    max-height: 80px; /* 画像の最大高さを大きく */
+    object-fit: contain;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    padding: 2px;
+    flex-shrink: 0; /* 縮小しない */
+}
+
+/* 画像ファイル名のスタイル */
+.image-file-name {
+    flex-grow: 1; /* 残りのスペースを埋める */
+    margin-right: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9em;
+    color: #555;
 }
 
 /* 削除ボタンのスタイル */
@@ -371,12 +423,40 @@ h2 {
 .image-preview-container p {
     color: #888;
     font-style: italic;
+    width: 100%; /* テキストが中央に表示されるように */
+    text-align: center;
+    padding: 20px; /* メッセージのパディング */
+    box-sizing: border-box;
 }
 
 /* ドラッグ中のアイテムのスタイル */
 .image-preview-item.dragging {
-    opacity: 0.5;
+    opacity: 0.7; /* 透明度を少し上げる */
     border: 2px dashed #007bff;
+    transform: scale(1.02); /* 少し拡大 */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* 影を強調 */
+    z-index: 100; /* 最前面に表示 */
+}
+
+/* アイテムが移動する際のアニメーション */
+/* .image-preview-item {
+    transition: transform 0.3s ease-out, box-shadow 0.2s ease;
+} */
+
+/* ドロップ時のアニメーション */
+.image-preview-item.drop-animation {
+    animation: drop-fade-in 0.3s ease-out;
+}
+
+@keyframes drop-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* リアルタイムプレビューコンテナのスタイル */
@@ -451,4 +531,12 @@ h2 {
     border: 1px solid #ccc;
     border-radius: 4px;
     text-align: right;
+}
+
+/* SortableJSのゴーストクラスのスタイル */
+.sortable-ghost {
+    opacity: 0.2; /* 透明度を上げて、プレースホルダーであることを示す */
+    background-color: #f0f0f0; /* 薄い背景色 */
+    border: 2px dashed #007bff; /* 点線のボーダー */
+    box-shadow: none; /* 影をなくす */
 }
