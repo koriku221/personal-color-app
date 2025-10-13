@@ -77,14 +77,14 @@ function displayImagePreviews(imageFileObjects) {
 
     imageFileObjects.forEach((imageObj, index) => {
         console.log(`displayImagePreviews: ファイル ${index} (${imageObj.file.name}) のプレビューを表示中...`);
-        appendImageToPreview(imageObj.previewUrl, imageObj.file.name, index); // previewUrlを使用
+        appendImageToPreview(imageObj.previewUrl, imageObj.file.name, imageObj.id); // imageObj.idを使用
     });
 }
 
-function appendImageToPreview(src, fileName, index) {
+function appendImageToPreview(src, fileName, id) { // indexではなくidを受け取る
     const previewItem = document.createElement('div');
     previewItem.classList.add('image-preview-item');
-    previewItem.dataset.id = index; // SortableJSのためにdataset.idを使用
+    previewItem.dataset.id = id; // SortableJSのためにdataset.idを使用
 
     const dragHandle = document.createElement('div');
     dragHandle.classList.add('drag-handle');
@@ -95,23 +95,100 @@ function appendImageToPreview(src, fileName, index) {
     img.classList.add('image-preview');
     img.alt = fileName;
 
-    const fileNameSpan = document.createElement('span');
-    fileNameSpan.textContent = fileName;
-    fileNameSpan.classList.add('image-file-name');
+    // キャプション入力欄のグループ
+    const captionInputGroup = document.createElement('div');
+    captionInputGroup.classList.add('caption-input-group'); // 新しいクラス名
+
+    // キャプション入力欄のラベル
+    const captionLabel = document.createElement('label');
+    captionLabel.textContent = 'キャプション:';
+    captionLabel.htmlFor = `caption-input-${id}`; // inputと関連付けるためのfor属性
+    captionInputGroup.appendChild(captionLabel); // グループに追加
+
+    const captionInput = document.createElement('input');
+    captionInput.type = 'text';
+    captionInput.id = `caption-input-${id}`; // labelと関連付けるためのid属性
+    captionInput.classList.add('image-caption-input');
+    captionInput.placeholder = 'キャプションを入力';
+    captionInputGroup.appendChild(captionInput); // グループに追加
+
+    // 既存のキャプションがあれば設定
+    const imageObj = selectedImageFiles.find(item => item.id === id);
+    if (imageObj && imageObj.caption !== undefined) { // undefinedチェックを追加
+        captionInput.value = imageObj.caption;
+    } else {
+        captionInput.value = fileName; // 初期値をファイル名に設定
+        if (imageObj) imageObj.caption = fileName; // selectedImageFilesにも設定
+    }
+    captionInput.addEventListener('input', (event) => {
+        const targetImage = selectedImageFiles.find(item => item.id === id);
+        if (targetImage) {
+            targetImage.caption = event.target.value;
+            updateRealtimePreview(); // キャプション変更時にリアルタイムプレビューを更新
+        }
+    });
 
     const removeButton = document.createElement('button');
     removeButton.classList.add('remove-image-btn');
     removeButton.textContent = 'X';
     removeButton.addEventListener('click', () => {
-        removeImage(parseInt(previewItem.dataset.id)); // dataset.idで削除
+        removeImage(id); // dataset.idで削除
     });
 
+    // キャプションフォントサイズ調整用のスライダーと数値入力
+    const captionFontSizeWrapper = document.createElement('div');
+    captionFontSizeWrapper.classList.add('caption-font-size-wrapper');
+
+    const captionFontSizeLabel = document.createElement('label');
+    captionFontSizeLabel.textContent = 'フォントサイズ:';
+    captionFontSizeWrapper.appendChild(captionFontSizeLabel);
+
+    const captionFontSizeSlider = document.createElement('input');
+    captionFontSizeSlider.type = 'range';
+    captionFontSizeSlider.min = '5';
+    captionFontSizeSlider.max = '30';
+    captionFontSizeSlider.value = imageObj ? imageObj.captionFontSize : '10';
+    captionFontSizeSlider.classList.add('caption-font-size-slider');
+    captionFontSizeWrapper.appendChild(captionFontSizeSlider);
+
+    const captionFontSizeNumber = document.createElement('input');
+    captionFontSizeNumber.type = 'number';
+    captionFontSizeNumber.min = '5';
+    captionFontSizeNumber.max = '30';
+    captionFontSizeNumber.value = imageObj ? imageObj.captionFontSize : '10';
+    captionFontSizeNumber.classList.add('caption-font-size-number');
+    captionFontSizeWrapper.appendChild(captionFontSizeNumber);
+
+    // スライダーと数値入力の同期
+    captionFontSizeSlider.addEventListener('input', (event) => {
+        captionFontSizeNumber.value = event.target.value;
+        const targetImage = selectedImageFiles.find(item => item.id === id);
+        if (targetImage) {
+            targetImage.captionFontSize = parseInt(event.target.value);
+            updateRealtimePreview();
+        }
+    });
+    captionFontSizeNumber.addEventListener('input', (event) => {
+        captionFontSizeSlider.value = event.target.value;
+        const targetImage = selectedImageFiles.find(item => item.id === id);
+        if (targetImage) {
+            targetImage.captionFontSize = parseInt(event.target.value);
+            updateRealtimePreview();
+        }
+    });
+
+    // キャプション入力欄とフォントサイズ調整要素をまとめる新しいラッパー
+    const textAndControlsWrapper = document.createElement('div');
+    textAndControlsWrapper.classList.add('image-caption-controls-wrapper'); // 汎用的なクラス名に変更
+    textAndControlsWrapper.appendChild(captionInputGroup); // 新しいグループを追加
+    textAndControlsWrapper.appendChild(captionFontSizeWrapper); // フォントサイズ調整UI
+
     previewItem.appendChild(dragHandle);
-    previewItem.appendChild(img);
-    previewItem.appendChild(fileNameSpan);
+    previewItem.appendChild(img); // 画像を直接追加
+    previewItem.appendChild(textAndControlsWrapper); // 新しいラッパーを追加
     previewItem.appendChild(removeButton);
     imagePreviewContainer.appendChild(previewItem);
-    console.log(`displayImagePreviews: ファイル ${index} (${fileName}) の画像プレビューアイテムがコンテナに追加されました。`);
+    console.log(`displayImagePreviews: ファイル ${id} (${fileName}) の画像プレビューアイテムがコンテナに追加されました。`);
 }
 
 function removeImage(idToRemove) {
@@ -132,16 +209,163 @@ function removeImage(idToRemove) {
     }
 }
 
+// 画像とキャプションの配置を計算する共通関数
+function calculateImagePlacements(
+    numImages,
+    pageWidth,
+    pageHeight,
+    margin,
+    imageSpacing,
+    userColumns,
+    imageAspectRatios,
+    captionFontSizes, // captionFontSizeを配列に変更
+    captionMarginTopBottom
+) {
+    const placements = [];
+    const usableWidth = pageWidth - 2 * margin;
+    const usableHeight = pageHeight - 2 * margin;
+
+    let bestCols = userColumns > 0 ? userColumns : 1;
+    let bestRows = Math.ceil(numImages / bestCols);
+
+    if (userColumns === 0) {
+        let currentBestArea = 0;
+        for (let cols = 1; cols <= numImages; cols++) {
+            const rows = Math.ceil(numImages / cols);
+
+            const gridCellWidth = usableWidth / cols;
+            const gridCellHeight = usableHeight / rows;
+
+            const blockUsableWidth = gridCellWidth - imageSpacing;
+            const blockUsableHeight = gridCellHeight - imageSpacing;
+
+            if (blockUsableWidth <= 0 || blockUsableHeight <= 0) continue;
+
+            let allImagesFit = true;
+            // 最も大きいキャプションフォントサイズを仮定して計算
+            const maxCaptionFontSize = Math.max(...captionFontSizes);
+            const captionHeightWithSpacingForTest = maxCaptionFontSize + (captionMarginTopBottom * 2);
+
+            for (const aspectRatio of imageAspectRatios) {
+                const imageOnlyUsableHeight = blockUsableHeight - captionHeightWithSpacingForTest;
+                if (imageOnlyUsableHeight <= 0) {
+                    allImagesFit = false;
+                    break;
+                }
+
+                let currentImgWidth = blockUsableWidth;
+                let currentImgHeight = blockUsableWidth / aspectRatio;
+
+                if (currentImgHeight > imageOnlyUsableHeight) {
+                    currentImgHeight = imageOnlyUsableHeight;
+                    currentImgWidth = imageOnlyUsableHeight * aspectRatio;
+                }
+
+                if (currentImgWidth > blockUsableWidth || currentImgHeight > imageOnlyUsableHeight) {
+                    allImagesFit = false;
+                    break;
+                }
+            }
+
+            if (allImagesFit) {
+                if (blockUsableWidth * blockUsableHeight > currentBestArea) {
+                    currentBestArea = blockUsableWidth * blockUsableHeight;
+                    bestCols = cols;
+                    bestRows = rows;
+                }
+            }
+        }
+    }
+
+    if (bestCols === 0 || bestRows === 0) {
+        return null; // 配置失敗
+    }
+
+    const gridCellWidth = usableWidth / bestCols;
+    const gridCellHeight = usableHeight / bestRows;
+
+    const blockUsableWidth = gridCellWidth - imageSpacing;
+    const blockUsableHeight = gridCellHeight - imageSpacing;
+
+    if (blockUsableWidth <= 0 || blockUsableHeight <= 0) {
+        return null; // 配置失敗
+    }
+
+    for (let i = 0; i < numImages; i++) {
+        const col = i % bestCols;
+        const row = Math.floor(i / bestCols);
+
+        const aspectRatio = imageAspectRatios[i];
+        const currentCaptionFontSize = captionFontSizes[i]; // 各画像のフォントサイズを取得
+        const captionHeightWithSpacing = currentCaptionFontSize + (captionMarginTopBottom * 2); // 各画像のキャプション高さを計算
+
+        const imageOnlyUsableHeight = blockUsableHeight - captionHeightWithSpacing;
+
+        let imgWidth = blockUsableWidth;
+        let imgHeight = blockUsableWidth / aspectRatio;
+
+        if (imgHeight > imageOnlyUsableHeight) {
+            imgHeight = imageOnlyUsableHeight;
+            imgWidth = imageOnlyUsableHeight * aspectRatio;
+        }
+
+        const totalBlockHeight = imgHeight + captionHeightWithSpacing;
+
+        const blockXOffset = (blockUsableWidth - imgWidth) / 2;
+        const blockYOffset = (blockUsableHeight - totalBlockHeight) / 2;
+
+        const imageX = margin + col * gridCellWidth + blockXOffset;
+        // リアルタイムプレビューのY座標 (上からの距離)
+        const imageY_realtime = margin + row * gridCellHeight + blockYOffset;
+        // PDF座標系での画像の下端のY座標 (下からの距離)
+        const imageBottomY_pdf = pageHeight - (imageY_realtime + imgHeight);
+
+        const captionX = imageX;
+        // リアルタイムプレビューのキャプションのY座標 (上からの距離)
+        const captionY_realtime = imageY_realtime + imgHeight + captionMarginTopBottom;
+        // PDF座標系でのキャプションのY座標 (下からの距離)
+        const captionY_pdf = pageHeight - (captionY_realtime + currentCaptionFontSize); // 各画像のフォントサイズを使用
+
+        placements.push({
+            image: {
+                x: imageX,
+                y_pdf: imageBottomY_pdf, // PDF埋め込み用
+                y_realtime: imageY_realtime, // リアルタイムプレビュー用
+                width: imgWidth,
+                height: imgHeight,
+            },
+            caption: {
+                x: captionX, // 画像と同じX座標
+                y_pdf: captionY_pdf,
+                y_realtime: captionY_realtime,
+                width: imgWidth, // 画像と同じ幅
+                height: currentCaptionFontSize, // 各画像のフォントサイズを使用
+            }
+        });
+    }
+    return placements;
+}
+
 // リアルタイムプレビューを更新する関数
 function updateRealtimePreview() {
     console.log('updateRealtimePreview: リアルタイムプレビュー更新関数が呼び出されました。');
-    // 画像要素のみをクリア
+    // 画像要素をクリア
     const images = realtimePreviewContainer.querySelectorAll('.realtime-preview-image');
     images.forEach(img => img.remove());
+
+    // キャプション要素をクリア
+    const captions = realtimePreviewContainer.querySelectorAll('.realtime-preview-caption');
+    captions.forEach(caption => caption.remove());
 
     // テキストメッセージをクリア
     const message = realtimePreviewContainer.querySelector('p');
     if (message) message.remove();
+
+    // 既存のページマージンガイドをクリア
+    const existingMarginGuide = realtimePreviewContainer.querySelector('.page-margin-guide');
+    if (existingMarginGuide) {
+        existingMarginGuide.remove();
+    }
 
     if (selectedImageFiles.length === 0) {
         // PDFが選択されておらず、画像もない場合のみメッセージを表示
@@ -166,100 +390,68 @@ function updateRealtimePreview() {
     const imageSpacing = parseInt(imageSpacingNumber.value) || 0;
     const userColumns = parseInt(columnsNumber.value) || 0;
 
+    // ページマージンガイドの追加
+    const pageMarginGuide = document.createElement('div');
+    pageMarginGuide.classList.add('page-margin-guide');
+    pageMarginGuide.style.left = `${margin * scale}px`;
+    pageMarginGuide.style.top = `${margin * scale}px`;
+    pageMarginGuide.style.width = `${(pageWidth - 2 * margin) * scale}px`;
+    pageMarginGuide.style.height = `${(pageHeight - 2 * margin) * scale}px`;
+    realtimePreviewContainer.appendChild(pageMarginGuide);
+
     const numImages = selectedImageFiles.length;
-    const usableWidth = pageWidth - 2 * margin;
-    const usableHeight = pageHeight - 2 * margin;
+    const imageAspectRatios = selectedImageFiles.map(img => img.aspectRatio);
+    const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 10); // 各画像のフォントサイズを取得、デフォルトは10
+    const captionMarginTopBottom = 5; // キャプションの上下マージン
 
-    let bestCols = userColumns > 0 ? userColumns : 1;
-    let bestRows = Math.ceil(numImages / bestCols);
+    const placements = calculateImagePlacements(
+        numImages,
+        pageWidth,
+        pageHeight,
+        margin,
+        imageSpacing,
+        userColumns,
+        imageAspectRatios,
+        captionFontSizes, // 配列を渡す
+        captionMarginTopBottom
+    );
 
-    if (userColumns === 0) {
-        let currentBestArea = 0;
-        for (let cols = 1; cols <= numImages; cols++) {
-            const rows = Math.ceil(numImages / cols);
-
-            const gridCellWidth = usableWidth / cols;
-            const gridCellHeight = usableHeight / rows;
-
-            const imageUsableWidth = gridCellWidth - imageSpacing;
-            const imageUsableHeight = gridCellHeight - imageSpacing;
-
-            if (imageUsableWidth <= 0 || imageUsableHeight <= 0) continue;
-
-            let allImagesFit = true;
-            for (const imageObj of selectedImageFiles) {
-                const aspectRatio = imageObj.aspectRatio;
-                let currentImgWidth = imageUsableWidth;
-                let currentImgHeight = imageUsableWidth / aspectRatio;
-
-                if (currentImgHeight > imageUsableHeight) {
-                    currentImgHeight = imageUsableHeight;
-                    currentImgWidth = imageUsableHeight * aspectRatio;
-                }
-
-                if (currentImgWidth > imageUsableWidth || currentImgHeight > imageUsableHeight) {
-                    allImagesFit = false;
-                    break;
-                }
-            }
-
-            if (allImagesFit) {
-                if (imageUsableWidth * imageUsableHeight > currentBestArea) {
-                    currentBestArea = imageUsableWidth * imageUsableHeight;
-                    bestCols = cols;
-                    bestRows = rows;
-                }
-            }
-        }
-    }
-
-    if (bestCols === 0 || bestRows === 0) {
+    if (!placements) {
         realtimePreviewContainer.innerHTML = '<p>画像を配置できませんでした。オプションを調整してください。</p>';
         console.log('updateRealtimePreview: 画像配置計算失敗。');
         return;
     }
 
-    const gridCellWidth = usableWidth / bestCols;
-    const gridCellHeight = usableHeight / bestRows;
-
-    const imageUsableWidth = gridCellWidth - imageSpacing;
-    const imageUsableHeight = gridCellHeight - imageSpacing;
-
-    if (imageUsableWidth <= 0 || imageUsableHeight <= 0) {
-        realtimePreviewContainer.innerHTML = '<p>画像を配置できませんでした。オプションを調整してください。</p>';
-        console.log('updateRealtimePreview: 画像が利用可能なスペースに収まりません。');
-        return;
-    }
-
     selectedImageFiles.forEach((imageObj, i) => {
-        const col = i % bestCols;
-        const row = Math.floor(i / bestCols);
-
-        const aspectRatio = imageObj.aspectRatio;
-        let imgWidth = imageUsableWidth;
-        let imgHeight = imageUsableWidth / aspectRatio;
-
-        if (imgHeight > imageUsableHeight) {
-            imgHeight = imageUsableHeight;
-            imgWidth = imageUsableHeight * aspectRatio;
-        }
-
-        const xOffset = (imageUsableWidth - imgWidth) / 2;
-        const yOffset = (imageUsableHeight - imgHeight) / 2;
-
-        const x = margin + col * gridCellWidth + xOffset;
-        const y = margin + row * gridCellHeight + yOffset;
+        const placement = placements[i];
 
         const imgElement = document.createElement('img');
         imgElement.src = imageObj.previewUrl;
         imgElement.classList.add('realtime-preview-image');
         // スケーリング係数を適用して表示
-        imgElement.style.left = `${x * scale}px`;
-        imgElement.style.top = `${y * scale}px`;
-        imgElement.style.width = `${imgWidth * scale}px`;
-        imgElement.style.height = `${imgHeight * scale}px`;
+        imgElement.style.left = `${placement.image.x * scale}px`;
+        imgElement.style.top = `${placement.image.y_realtime * scale}px`;
+        imgElement.style.width = `${placement.image.width * scale}px`;
+        imgElement.style.height = `${placement.image.height * scale}px`;
         realtimePreviewContainer.appendChild(imgElement);
-        console.log(`updateRealtimePreview: 画像 ${i} (${imageObj.file.name}) を位置 (x:${x * scale}, y:${y * scale})、サイズ (w:${imgWidth * scale}, h:${imgHeight * scale}) で描画しました。`);
+
+        // キャプションのプレビュー
+        if (imageObj.caption) {
+            const captionElement = document.createElement('div');
+            captionElement.classList.add('realtime-preview-caption');
+            captionElement.textContent = imageObj.caption;
+            captionElement.style.fontSize = `${placement.caption.height * scale}px`;
+            // キャプションは画像の中央に配置され、左右均等にはみ出すように調整
+            captionElement.style.left = `${(placement.image.x + placement.image.width / 2) * scale}px`; // 画像の中心のX座標
+            captionElement.style.transform = `translateX(-50%)`; // 要素自体の幅を考慮して中央寄せ
+            captionElement.style.top = `${placement.caption.y_realtime * scale}px`;
+            captionElement.style.width = `auto`; // 幅は内容に応じて自動調整
+            captionElement.style.textAlign = 'center';
+            captionElement.style.whiteSpace = 'normal'; // キャプションが横幅を超えて表示されるように
+            captionElement.style.overflow = 'visible'; // テキストが切り捨てられないように
+            captionElement.style.textOverflow = 'clip'; // テキストが切り捨てられないように
+            realtimePreviewContainer.appendChild(captionElement);
+        }
     });
 }
 
@@ -271,7 +463,7 @@ async function renderPdfPageAsBackground() {
     }
 
     try {
-        const pageNumber = parseInt(pageNumberInput.value) || 1;
+        const pageNumber = parseInt(pageNumberNumber.value) || 1;
         const pdfBytes = await selectedPdfFile.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
         const pdf = await loadingTask.promise;
@@ -448,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const aspectRatio = img.width / img.height;
                 const id = Date.now() + Math.random(); // ユニークなIDを生成
 
-                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio });
+                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 10 }); // captionの初期値をファイル名に設定, captionFontSizeの初期値を追加
             }
             selectedImageFiles = tempSelectedImageFiles; // 処理後に置き換え
             displayImagePreviews(selectedImageFiles); // 置き換え後に呼び出す
@@ -512,108 +704,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 embeddedImages.push(image);
             }
 
-            // 画像の配置計算
             const numImages = embeddedImages.length;
-            const usableWidth = pageWidth - 2 * margin;
-            const usableHeight = pageHeight - 2 * margin;
+            const imageAspectRatios = embeddedImages.map(img => img.width / img.height);
+            const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 10); // 各画像のフォントサイズを取得、デフォルトは10
+            const captionMarginTopBottom = 5; // キャプションの上下マージン
 
-            let bestCols = userColumns > 0 ? userColumns : 1;
-            let bestRows = Math.ceil(numImages / bestCols);
+            const placements = calculateImagePlacements(
+                numImages,
+                pageWidth,
+                pageHeight,
+                margin,
+                imageSpacing,
+                userColumns,
+                imageAspectRatios,
+                captionFontSizes, // 配列を渡す
+                captionMarginTopBottom
+            );
 
-            // ユーザーが列数を指定しない場合、最適なグリッドレイアウトを計算
-            if (userColumns === 0) {
-                let currentBestArea = 0;
-                for (let cols = 1; cols <= numImages; cols++) {
-                    const rows = Math.ceil(numImages / cols);
-
-                    // 各グリッドセルが利用できる総幅と高さ (画像と画像間のスペースを含む)
-                    const gridCellWidth = usableWidth / cols;
-                    const gridCellHeight = usableHeight / rows;
-
-                    // 各画像が利用できる幅と高さ (画像間のスペースを引いたもの)
-                    const imageUsableWidth = gridCellWidth - imageSpacing;
-                    const imageUsableHeight = gridCellHeight - imageSpacing;
-
-                    if (imageUsableWidth <= 0 || imageUsableHeight <= 0) continue; // 無効な画像サイズ
-
-                    let allImagesFit = true;
-                    for (const img of embeddedImages) {
-                        const aspectRatio = img.width / img.height;
-                        let currentImgWidth = imageUsableWidth;
-                        let currentImgHeight = imageUsableWidth / aspectRatio;
-
-                        if (currentImgHeight > imageUsableHeight) {
-                            currentImgHeight = imageUsableHeight;
-                            currentImgWidth = imageUsableHeight * aspectRatio;
-                        }
-
-                        if (currentImgWidth > imageUsableWidth || currentImgHeight > imageUsableHeight) {
-                            allImagesFit = false;
-                            break;
-                        }
-                    }
-
-                    if (allImagesFit) {
-                        if (imageUsableWidth * imageUsableHeight > currentBestArea) {
-                            currentBestArea = imageUsableWidth * imageUsableHeight;
-                            bestCols = cols;
-                            bestRows = rows;
-                        }
-                    }
-                }
-            }
-
-            if (bestCols === 0 || bestRows === 0) {
-                alert('画像をページに配置できませんでした。画像が大きすぎるか、ページが小さすぎます。');
-                loadingOverlay.style.display = 'none';
-                return;
-            }
-
-            // 各グリッドセルが占める総幅と高さ
-            const gridCellWidth = usableWidth / bestCols;
-            const gridCellHeight = usableHeight / bestRows;
-
-            // 各画像が利用できる幅と高さ (画像間のスペースを引いたもの)
-            const imageUsableWidth = gridCellWidth - imageSpacing;
-            const imageUsableHeight = gridCellHeight - imageSpacing;
-
-            if (imageUsableWidth <= 0 || imageUsableHeight <= 0) {
-                alert('画像をページに配置できませんでした。指定されたマージン、スペース、列数では画像が収まりません。');
+            if (!placements) {
+                alert('画像をページに配置できませんでした。オプションを調整してください。');
                 loadingOverlay.style.display = 'none';
                 return;
             }
 
             for (let i = 0; i < numImages; i++) {
                 const image = embeddedImages[i];
-                const col = i % bestCols;
-                const row = Math.floor(i / bestCols);
-
-                const aspectRatio = image.width / image.height;
-
-                let imgWidth = imageUsableWidth;
-                let imgHeight = imageUsableWidth / aspectRatio;
-
-                if (imgHeight > imageUsableHeight) {
-                    imgHeight = imageUsableHeight;
-                    imgWidth = imageUsableHeight * aspectRatio;
-                }
-
-                // 画像をセル内で中央揃え
-                const xOffset = (imageUsableWidth - imgWidth) / 2;
-                const yOffset = (imageUsableHeight - imgHeight) / 2;
-
-                // 画像の描画位置
-                const x = margin + col * gridCellWidth + xOffset;
-                // y座標はページの下から計算されるため、ページの上端からマージンを引いた位置を基準に、
-                // 各グリッドセルの上端から画像が中央に配置されるように調整
-                const y = pageHeight - margin - (row + 1) * gridCellHeight + (gridCellHeight - imgHeight) / 2;
+                const placement = placements[i];
 
                 targetPage.drawImage(image, {
-                    x,
-                    y,
-                    width: imgWidth,
-                    height: imgHeight,
+                    x: placement.image.x,
+                    y: placement.image.y_pdf,
+                    width: placement.image.width,
+                    height: placement.image.height,
                 });
+
+                // キャプションの描画
+                if (selectedImageFiles[i].caption) {
+                    const captionText = selectedImageFiles[i].caption;
+                    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    const fontSize = selectedImageFiles[i].captionFontSize || 10; // 各画像のフォントサイズを使用
+
+                    let textWidth = font.widthOfTextAtSize(captionText, fontSize);
+                    const centeredCaptionX = placement.caption.x + (placement.caption.width / 2) - (textWidth / 2);
+
+                    targetPage.drawText(captionText, {
+                        x: centeredCaptionX,
+                        y: placement.caption.y_pdf,
+                        font: font,
+                        size: fontSize,
+                        color: PDFLib.rgb(0, 0, 0),
+                    });
+                }
             }
 
             const pdfBytesModified = await pdfDoc.save();

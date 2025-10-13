@@ -54,8 +54,8 @@ h1 {
 }
 
 label {
-    margin-bottom: 8px;
-    font-weight: 600;
+    margin-bottom: 0; /* 統一されたデザインのために0に */
+    font-weight: normal; /* 統一されたデザインのためにnormalに */
     color: #555;
 }
 
@@ -323,15 +323,15 @@ h2 {
 /* 各画像プレビューアイテムのスタイル */
 .image-preview-item {
     position: relative;
-    width: 90%; /* コンテナの幅に合わせる */
-    max-width: 400px; /* 最大幅を大きく */
-    height: 100px; /* アイテムの固定高さを大きく */
+    height: auto; /* 高さを内容に合わせて自動調整 */
+    min-height: 100px; /* 最小高さを設定 */
     border: 1px solid #eee;
     background-color: #fff;
     display: flex;
+    flex-direction: row; /* ドラッグハンドル、コンテンツ、削除ボタンを横に並べる */
     align-items: center; /* 垂直方向中央揃え */
-    justify-content: space-between; /* 要素間のスペースを均等に分散 */
-    padding: 5px 10px; /* 左右にパディングを追加 */
+    justify-content: flex-start;
+    padding: 10px; /* 全体のパディングを調整 */
     box-sizing: border-box;
     cursor: grab; /* ドラッグ可能であることを示すカーソル */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -356,6 +356,8 @@ h2 {
     padding: 5px 0; /* 上下のパディングで線間のスペースを調整 */
     border-radius: 3px; /* 角を少し丸く */
     transition: background-color 0.2s ease;
+    flex-shrink: 0; /* 縮小されないようにする */
+    /* align-self: flex-start; */ /* 上部に配置を削除 */
 }
 
 .drag-handle:hover {
@@ -382,22 +384,31 @@ h2 {
     flex-shrink: 0; /* 縮小しない */
 }
 
-/* 画像ファイル名のスタイル */
-.image-file-name {
+/* キャプションラベルのスタイル */
+.caption-label { /* 新しい汎用的なクラス名 */
+    font-size: 0.85em;
+    margin-right: 5px;
+    /* margin-bottomとfont-weightはlabelセレクタで統一されたので削除 */
+    flex-shrink: 0;
+}
+
+/* キャプション入力欄のスタイル */
+.image-caption-input {
     flex-grow: 1; /* 残りのスペースを埋める */
-    margin-right: 10px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.9em;
-    color: #555;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.85em;
+    box-sizing: border-box;
+    /* margin-left: 10px; */ /* 画像とのスペース */
+    width: auto; /* 親要素の幅に合わせて自動調整 */
 }
 
 /* 削除ボタンのスタイル */
 .remove-image-btn {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: 5px; /* 上からの位置を調整 */
+    right: 5px; /* 右からの位置を調整 */
     background-color: #e74c3c;
     color: white;
     border: none;
@@ -414,6 +425,7 @@ h2 {
     padding: 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s ease;
+    flex-shrink: 0; /* 縮小されないようにする */
 }
 
 .remove-image-btn:hover {
@@ -483,12 +495,39 @@ h2 {
     text-align: center;
 }
 
+/* ページマージンガイドのスタイル */
+.page-margin-guide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px dashed #ff0000; /* 赤い点線でマージンを示す */
+    box-sizing: border-box;
+    pointer-events: none; /* クリックイベントを無効にする */
+    z-index: 1; /* 他の要素の上に表示 */
+}
+
 /* リアルタイムプレビュー内の画像スタイル */
 .realtime-preview-image {
     position: absolute;
     border: 1px dashed #007bff; /* 配置を示すためのボーダー */
     box-sizing: border-box;
     object-fit: contain;
+    z-index: 2; /* マージンガイドの上に表示 */
+}
+
+/* リアルタイムプレビュー内のキャプションスタイル */
+.realtime-preview-caption {
+    position: absolute;
+    color: #000;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    border: 1px dashed #00cc00; /* 緑の点線でキャプションの範囲を示す */
+    z-index: 3; /* 画像の上に表示 */
 }
 
 /* オプショングループのスタイル */
@@ -539,4 +578,60 @@ h2 {
     background-color: #f0f0f0; /* 薄い背景色 */
     border: 2px dashed #007bff; /* 点線のボーダー */
     box-shadow: none; /* 影をなくす */
+}
+
+.inputs-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+    color: #555;
+    flex-shrink: 0;
+    width: 100%; /* 親要素の幅を最大限に利用 */
+    justify-content: flex-start; /* 右寄せから左寄せに変更 */
+    /* padding-right: 32px; */ /* item-content-wrapper内で調整 */
+    box-sizing: border-box;
+    /* font-size: 0.8em; は親で設定されるので削除 */
+}
+
+.caption-font-size-wrapper label {
+    margin-bottom: 0;
+    font-weight: normal;
+}
+
+.caption-font-size-slider {
+    width: 100px; /* スライダーの幅を調整 */
+}
+
+.caption-font-size-number {
+    width: 50px; /* 数値入力の幅を調整 */
+    padding: 3px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    text-align: center;
+}
+
+/* 新しいラッパーのスタイル */
+.image-caption-controls-wrapper { /* script.jsで追加したラッパー */
+    display: flex;
+    flex-direction: column; /* ラベル、入力、フォントサイズ調整を縦に並べる */
+    flex-grow: 1; /* 利用可能なスペースを埋める */
+    margin-left: 10px; /* ドラッグハンドルとのスペース */
+    padding-right: 32px; /* 削除ボタンのスペースを考慮 */
+    box-sizing: border-box;
+    font-size: 0.8em; /* 汎用的なフォントサイズ */
+}
+
+.image-caption-controls-wrapper .caption-label { /* キャプションラベルのスタイル */
+    margin-bottom: 5px; /* ラベルと入力欄の間にスペース */
+}
+
+.image-caption-controls-wrapper .image-caption-input {
+    margin-left: 0; /* ラベルと入力が縦に並ぶので、左マージンは不要 */
+    margin-top: 0; /* ラベルとの間にスペースはcaption-labelで調整 */
+}
+
+.image-caption-controls-wrapper .caption-font-size-wrapper {
+    margin-top: 10px; /* キャプション入力欄との間にスペース */
+    justify-content: flex-start; /* 左寄せに戻す */
 }
