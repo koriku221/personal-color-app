@@ -1,8 +1,9 @@
 import heicConvert from 'heic-convert';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerSrc from 'url:pdfjs-dist/build/pdf.worker.min.mjs';
-
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+
+const fontCache = {}; // フォントキャッシュを定義
 
 // We know these elements exist because they are defined in index.html
 const pdfFile = document.getElementById('pdfFile');
@@ -97,7 +98,7 @@ function appendImageToPreview(src, fileName, id) { // indexではなくidを受�
 
     // キャプション入力欄のグループ
     const captionInputGroup = document.createElement('div');
-    captionInputGroup.classList.add('caption-input-group'); // 新しいクラス名
+    captionInputGroup.classList.add('inputs-wrapper', 'caption-input-group'); // 新しいクラス名
 
     // キャプション入力欄のラベル
     const captionLabel = document.createElement('label');
@@ -137,7 +138,7 @@ function appendImageToPreview(src, fileName, id) { // indexではなくidを受�
 
     // キャプションフォントサイズ調整用のスライダーと数値入力
     const captionFontSizeWrapper = document.createElement('div');
-    captionFontSizeWrapper.classList.add('caption-font-size-wrapper');
+    captionFontSizeWrapper.classList.add('inputs-wrapper', 'caption-font-size-wrapper');
 
     const captionFontSizeLabel = document.createElement('label');
     captionFontSizeLabel.textContent = 'フォントサイズ:';
@@ -179,9 +180,68 @@ function appendImageToPreview(src, fileName, id) { // indexではなくidを受�
 
     // キャプション入力欄とフォントサイズ調整要素をまとめる新しいラッパー
     const textAndControlsWrapper = document.createElement('div');
-    textAndControlsWrapper.classList.add('image-caption-controls-wrapper'); // 汎用的なクラス名に変更
+    textAndControlsWrapper.classList.add('inputs-wrapper', 'image-caption-controls-wrapper'); // 汎用的なクラス名に変更
     textAndControlsWrapper.appendChild(captionInputGroup); // 新しいグループを追加
     textAndControlsWrapper.appendChild(captionFontSizeWrapper); // フォントサイズ調整UI
+
+    // フォントカラー選択
+    const fontColorWrapper = document.createElement('div');
+    fontColorWrapper.classList.add('inputs-wrapper', 'caption-font-color-wrapper');
+
+    const fontColorLabel = document.createElement('label');
+    fontColorLabel.textContent = 'フォントカラー:';
+    fontColorWrapper.appendChild(fontColorLabel);
+
+    const fontColorInput = document.createElement('input');
+    fontColorInput.type = 'color';
+    fontColorInput.value = imageObj ? imageObj.captionFontColor : '#000000';
+    fontColorInput.classList.add('caption-font-color-input');
+    fontColorWrapper.appendChild(fontColorInput);
+    textAndControlsWrapper.appendChild(fontColorWrapper);
+
+    fontColorInput.addEventListener('input', (event) => {
+        const targetImage = selectedImageFiles.find(item => item.id === id);
+        if (targetImage) {
+            targetImage.captionFontColor = event.target.value;
+            updateRealtimePreview();
+        }
+    });
+
+    // フォントファミリー選択
+    const fontFamilyWrapper = document.createElement('div');
+    fontFamilyWrapper.classList.add('inputs-wrapper', 'caption-font-family-wrapper');
+
+    const fontFamilyLabel = document.createElement('label');
+    fontFamilyLabel.textContent = 'フォントファミリー:';
+    fontFamilyWrapper.appendChild(fontFamilyLabel);
+
+    const fontFamilySelect = document.createElement('select');
+    fontFamilySelect.classList.add('caption-font-family-select');
+    const fonts = [
+        { value: 'Helvetica', text: 'Helvetica' },
+        { value: 'Times-Roman', text: 'Times-Roman' },
+        { value: 'Courier', text: 'Courier' },
+        { value: 'ZapfDingbats', text: 'ZapfDingbats' },
+        { value: 'Symbol', text: 'Symbol' },
+        { value: 'NotoSansJP', text: 'Noto Sans JP' } // 日本語フォントを追加
+    ];
+    fonts.forEach(font => {
+        const option = document.createElement('option');
+        option.value = font.value;
+        option.textContent = font.text;
+        fontFamilySelect.appendChild(option);
+    });
+    fontFamilySelect.value = imageObj ? imageObj.captionFontFamily : 'Helvetica';
+    fontFamilyWrapper.appendChild(fontFamilySelect);
+    textAndControlsWrapper.appendChild(fontFamilyWrapper);
+
+    fontFamilySelect.addEventListener('change', (event) => {
+        const targetImage = selectedImageFiles.find(item => item.id === id);
+        if (targetImage) {
+            targetImage.captionFontFamily = event.target.value;
+            updateRealtimePreview();
+        }
+    });
 
     previewItem.appendChild(dragHandle);
     previewItem.appendChild(img); // 画像を直接追加
@@ -450,6 +510,8 @@ function updateRealtimePreview() {
             captionElement.style.whiteSpace = 'normal'; // キャプションが横幅を超えて表示されるように
             captionElement.style.overflow = 'visible'; // テキストが切り捨てられないように
             captionElement.style.textOverflow = 'clip'; // テキストが切り捨てられないように
+            captionElement.style.color = imageObj.captionFontColor || '#000000'; // フォントカラーを適用
+            captionElement.style.fontFamily = imageObj.captionFontFamily || 'Helvetica'; // フォントファミリーを適用
             realtimePreviewContainer.appendChild(captionElement);
         }
     });
@@ -640,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const aspectRatio = img.width / img.height;
                 const id = Date.now() + Math.random(); // ユニークなIDを生成
 
-                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 10 }); // captionの初期値をファイル名に設定, captionFontSizeの初期値を追加
+                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 10, captionFontColor: '#000000', captionFontFamily: 'Helvetica' }); // captionの初期値をファイル名に設定, captionFontSize, captionFontColor, captionFontFamilyの初期値を追加
             }
             selectedImageFiles = tempSelectedImageFiles; // 処理後に置き換え
             displayImagePreviews(selectedImageFiles); // 置き換え後に呼び出す
@@ -741,8 +803,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 // キャプションの描画
                 if (selectedImageFiles[i].caption) {
                     const captionText = selectedImageFiles[i].caption;
-                    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-                    const fontSize = selectedImageFiles[i].captionFontSize || 10; // 各画像のフォントサイズを使用
+                    const fontSize = selectedImageFiles[i].captionFontSize || 10;
+
+                    // フォントファミリーに基づいてフォントを埋め込む
+                    let font;
+                    const fontFamily = selectedImageFiles[i].captionFontFamily;
+                    
+                    // フォントキャッシュを導入
+                    if (!fontCache[fontFamily]) {
+                        if (fontFamily === 'NotoSansJP') {
+                            try {
+                                // NotoSansJPフォントファイルを読み込む
+                                const fontBytes = await fetch('fonts/NotoSansJP-Regular.ttf').then(res => res.arrayBuffer());
+                                fontCache[fontFamily] = await pdfDoc.embedFont(fontBytes);
+                            } catch (error) {
+                                console.error('NotoSansJPフォントの埋め込みに失敗しました。Helveticaにフォールバックします。', error);
+                                fontCache[fontFamily] = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                            }
+                        } else {
+                            fontCache[fontFamily] = await pdfDoc.embedFont(PDFLib.StandardFonts[fontFamily] || PDFLib.StandardFonts.Helvetica);
+                        }
+                    }
+                    font = fontCache[fontFamily];
+
+                    // フォントカラーをRGBに変換
+                    const hexColor = selectedImageFiles[i].captionFontColor || '#000000';
+                    const r = parseInt(hexColor.slice(1, 3), 16) / 255;
+                    const g = parseInt(hexColor.slice(3, 5), 16) / 255;
+                    const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+                    const fontColor = PDFLib.rgb(r, g, b); // PDFLib.rgbではなくrgbを使用
 
                     let textWidth = font.widthOfTextAtSize(captionText, fontSize);
                     const centeredCaptionX = placement.caption.x + (placement.caption.width / 2) - (textWidth / 2);
@@ -752,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         y: placement.caption.y_pdf,
                         font: font,
                         size: fontSize,
-                        color: PDFLib.rgb(0, 0, 0),
+                        color: fontColor,
                     });
                 }
             }

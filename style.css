@@ -335,7 +335,7 @@ h2 {
     box-sizing: border-box;
     cursor: grab; /* ドラッグ可能であることを示すカーソル */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* transition: transform 0.2s ease-in-out, box-shadow 0.2s ease; */ /* SortableJSのアニメーションと競合するため無効化 */
+	gap: 10px;
 }
 
 .image-preview-item:hover {
@@ -352,7 +352,6 @@ h2 {
     justify-content: space-around; /* 均等に配置 */
     align-items: center;
     cursor: grab;
-    margin-right: 10px;
     padding: 5px 0; /* 上下のパディングで線間のスペースを調整 */
     border-radius: 3px; /* 角を少し丸く */
     transition: background-color 0.2s ease;
@@ -378,7 +377,6 @@ h2 {
     max-width: 80px; /* 画像の最大幅を大きく */
     max-height: 80px; /* 画像の最大高さを大きく */
     object-fit: contain;
-    margin-right: 10px;
     border: 1px solid #ddd;
     padding: 2px;
     flex-shrink: 0; /* 縮小しない */
@@ -582,16 +580,11 @@ h2 {
 
 .inputs-wrapper {
     display: flex;
-    align-items: center;
     gap: 10px;
-    margin-top: 5px;
     color: #555;
     flex-shrink: 0;
-    width: 100%; /* 親要素の幅を最大限に利用 */
     justify-content: flex-start; /* 右寄せから左寄せに変更 */
-    /* padding-right: 32px; */ /* item-content-wrapper内で調整 */
     box-sizing: border-box;
-    /* font-size: 0.8em; は親で設定されるので削除 */
 }
 
 .caption-font-size-wrapper label {
@@ -616,7 +609,6 @@ h2 {
     display: flex;
     flex-direction: column; /* ラベル、入力、フォントサイズ調整を縦に並べる */
     flex-grow: 1; /* 利用可能なスペースを埋める */
-    margin-left: 10px; /* ドラッグハンドルとのスペース */
     padding-right: 32px; /* 削除ボタンのスペースを考慮 */
     box-sizing: border-box;
     font-size: 0.8em; /* 汎用的なフォントサイズ */
@@ -632,6 +624,32 @@ h2 {
 }
 
 .image-caption-controls-wrapper .caption-font-size-wrapper {
-    margin-top: 10px; /* キャプション入力欄との間にスペース */
     justify-content: flex-start; /* 左寄せに戻す */
+}
+
+/* フォントカラー選択とフォントファミリー選択のラッパー */
+.image-caption-controls-wrapper .caption-font-color-wrapper,
+.image-caption-controls-wrapper .caption-font-family-wrapper {
+    justify-content: flex-start; /* 左寄せ */
+    align-items: center; /* 垂直方向中央揃え */
+}
+
+/* フォントカラー入力 */
+.caption-font-color-input {
+    width: 50px; /* 幅を固定 */
+    height: 30px; /* 高さを調整 */
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* フォントファミリー選択 */
+.caption-font-family-select {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.85em;
+    flex-grow: 1; /* 利用可能なスペースを埋める */
+    max-width: 150px; /* 最大幅を設定 */
 }
