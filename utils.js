@@ -1,5 +1,16 @@
+if (!Promise.withResolvers) {
+  Promise.withResolvers = function () {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 import * as pdfjsLib from 'pdfjs-dist';
-import workerSrc from 'url:pdfjs-dist/build/pdf.worker.min.mjs';
+import workerSrc from 'url:pdfjs-dist/build/pdf.worker.min.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 import { Buffer } from 'buffer'; // Bufferポリフィルをインポート
 import heicConvert from 'heic-convert';
