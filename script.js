@@ -264,7 +264,10 @@ function calculateImagePlacements(
     numImages,
     pageWidth,
     pageHeight,
-    margin,
+    marginTop, // Changed from margin
+    marginBottom, // New parameter
+    marginLeft, // New parameter
+    marginRight, // New parameter
     imageSpacing,
     userColumns,
     imageAspectRatios,
@@ -272,8 +275,9 @@ function calculateImagePlacements(
     captionMarginTopBottom
 ) {
     const placements = [];
-    const usableWidth = pageWidth - 2 * margin;
-    const usableHeight = pageHeight - 2 * margin;
+    // Updated to use individual margins
+    const usableWidth = pageWidth - marginLeft - marginRight;
+    const usableHeight = pageHeight - marginTop - marginBottom;
 
     let bestCols = userColumns > 0 ? userColumns : 1;
     let bestRows = Math.ceil(numImages / bestCols);
@@ -283,6 +287,7 @@ function calculateImagePlacements(
         for (let cols = 1; cols <= numImages; cols++) {
             const rows = Math.ceil(numImages / cols);
 
+            // Use usableWidth and usableHeight for grid cell calculation
             const gridCellWidth = usableWidth / cols;
             const gridCellHeight = usableHeight / rows;
 
@@ -330,6 +335,7 @@ function calculateImagePlacements(
         return null;
     }
 
+    // Use usableWidth and usableHeight for grid cell calculation
     const gridCellWidth = usableWidth / bestCols;
     const gridCellHeight = usableHeight / bestRows;
 
@@ -363,8 +369,9 @@ function calculateImagePlacements(
         const blockXOffset = (blockUsableWidth - imgWidth) / 2;
         const blockYOffset = (blockUsableHeight - totalBlockHeight) / 2;
 
-        const imageX = margin + col * gridCellWidth + blockXOffset;
-        const imageY_realtime = margin + row * gridCellHeight + blockYOffset;
+        // Updated to use individual margins for positioning
+        const imageX = marginLeft + col * gridCellWidth + blockXOffset;
+        const imageY_realtime = marginTop + row * gridCellHeight + blockYOffset;
         const imageBottomY_pdf = pageHeight - (imageY_realtime + imgHeight);
 
         const captionX = imageX;
@@ -391,7 +398,7 @@ function calculateImagePlacements(
     return placements;
 }
 
-function updateRealtimePreview() {
+function updateRealtimePreview() { // Reverted to no arguments
     const realtimePreviewContainer = getElement('realtimePreviewContainer');
     if (!realtimePreviewContainer) return;
 
@@ -422,21 +429,30 @@ function updateRealtimePreview() {
     const { width: pageWidth, height: pageHeight } = pdfPageSize;
     const scale = previewContainerWidth / pageWidth;
 
-    const pageMarginNumber = getElement('pageMarginNumber');
+    // Get individual margin values from DOM elements
+    const pageMarginTopNumber = getElement('pageMarginTopNumber');
+    const pageMarginBottomNumber = getElement('pageMarginBottomNumber');
+    const pageMarginLeftNumber = getElement('pageMarginLeftNumber');
+    const pageMarginRightNumber = getElement('pageMarginRightNumber');
+
+    const marginTop = parseInt(pageMarginTopNumber.value) || 0;
+    const marginBottom = parseInt(pageMarginBottomNumber.value) || 0;
+    const marginLeft = parseInt(pageMarginLeftNumber.value) || 0;
+    const marginRight = parseInt(pageMarginRightNumber.value) || 0;
+
     const imageSpacingNumber = getElement('imageSpacingNumber');
     const columnsNumber = getElement('columnsNumber');
-    if (!pageMarginNumber || !imageSpacingNumber || !columnsNumber) return;
+    if (!imageSpacingNumber || !columnsNumber) return;
 
-    const margin = parseInt(pageMarginNumber.value) || 0;
     const imageSpacing = parseInt(imageSpacingNumber.value) || 0;
     const userColumns = parseInt(columnsNumber.value) || 0;
 
     const pageMarginGuide = document.createElement('div');
     pageMarginGuide.classList.add('page-margin-guide');
-    pageMarginGuide.style.left = `${margin * scale}px`;
-    pageMarginGuide.style.top = `${margin * scale}px`;
-    pageMarginGuide.style.width = `${(pageWidth - 2 * margin) * scale}px`;
-    pageMarginGuide.style.height = `${(pageHeight - 2 * margin) * scale}px`;
+    pageMarginGuide.style.left = `${marginLeft * scale}px`; // Use marginLeft
+    pageMarginGuide.style.top = `${marginTop * scale}px`;   // Use marginTop
+    pageMarginGuide.style.width = `${(pageWidth - marginLeft - marginRight) * scale}px`; // Use marginLeft and marginRight
+    pageMarginGuide.style.height = `${(pageHeight - marginTop - marginBottom) * scale}px`; // Use marginTop and marginBottom
     realtimePreviewContainer.appendChild(pageMarginGuide);
 
     const numImages = selectedImageFiles.length;
@@ -444,11 +460,15 @@ function updateRealtimePreview() {
     const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 10);
     const captionMarginTopBottom = 5;
 
+    // Pass individual margins to calculateImagePlacements
     const placements = calculateImagePlacements(
         numImages,
         pageWidth,
         pageHeight,
-        margin,
+        marginTop,
+        marginBottom,
+        marginLeft,
+        marginRight,
         imageSpacing,
         userColumns,
         imageAspectRatios,
@@ -691,8 +711,6 @@ function setupImageSelectListeners() {
 
 async function setupOptionsListeners() {
     const embedButton = getElement('embedButton');
-    const pageMarginSlider = getElement('pageMarginSlider');
-    const pageMarginNumber = getElement('pageMarginNumber');
     const imageSpacingSlider = getElement('imageSpacingSlider');
     const imageSpacingNumber = getElement('imageSpacingNumber');
     const columnsSlider = getElement('columnsSlider');
@@ -701,7 +719,21 @@ async function setupOptionsListeners() {
     const pageNumberNumber = getElement('pageNumberNumber');
     const realtimePreviewContainer = getElement('realtimePreviewContainer');
 
-    if (!embedButton || !pageMarginSlider || !pageMarginNumber ||
+    // New inputs for individual margins
+    const pageMarginTopSlider = getElement('pageMarginTopSlider');
+    const pageMarginTopNumber = getElement('pageMarginTopNumber');
+    const pageMarginBottomSlider = getElement('pageMarginBottomSlider');
+    const pageMarginBottomNumber = getElement('pageMarginBottomNumber');
+    const pageMarginLeftSlider = getElement('pageMarginLeftSlider');
+    const pageMarginLeftNumber = getElement('pageMarginLeftNumber');
+    const pageMarginRightSlider = getElement('pageMarginRightSlider');
+    const pageMarginRightNumber = getElement('pageMarginRightNumber');
+
+    if (!embedButton || 
+		!pageMarginTopSlider || !pageMarginTopNumber ||
+		!pageMarginBottomSlider || !pageMarginBottomNumber ||
+		!pageMarginLeftSlider || !pageMarginLeftNumber ||
+		!pageMarginRightSlider || !pageMarginRightNumber ||
         !imageSpacingSlider || !imageSpacingNumber || !columnsSlider || !columnsNumber ||
         !pageNumberSlider || !pageNumberNumber || !realtimePreviewContainer) {
         console.warn('オプション設定画面のDOM要素が見つかりませんでした。');
@@ -712,8 +744,20 @@ async function setupOptionsListeners() {
         slider.value = numberInput.value;
     }
 
-    pageMarginSlider.oninput = () => {
-        pageMarginNumber.value = pageMarginSlider.value;
+    pageMarginTopSlider.oninput = () => {
+        pageMarginTopNumber.value = pageMarginTopSlider.value;
+        updateRealtimePreview();
+    };
+    pageMarginBottomSlider.oninput = () => {
+        pageMarginBottomNumber.value = pageMarginBottomSlider.value;
+        updateRealtimePreview();
+    };
+    pageMarginLeftSlider.oninput = () => {
+        pageMarginLeftNumber.value = pageMarginLeftSlider.value;
+        updateRealtimePreview();
+    };
+    pageMarginRightSlider.oninput = () => {
+        pageMarginRightNumber.value = pageMarginRightSlider.value;
         updateRealtimePreview();
     };
     imageSpacingSlider.oninput = () => {
@@ -730,8 +774,20 @@ async function setupOptionsListeners() {
         renderPdfPageAsBackground();
     };
 
-    pageMarginNumber.oninput = () => {
-        syncInputs(pageMarginSlider, pageMarginNumber);
+    pageMarginTopNumber.oninput = () => {
+        syncInputs(pageMarginTopSlider, pageMarginTopNumber);
+        updateRealtimePreview();
+    };
+    pageMarginBottomNumber.oninput = () => {
+        syncInputs(pageMarginBottomSlider, pageMarginBottomNumber);
+        updateRealtimePreview();
+    };
+    pageMarginLeftNumber.oninput = () => {
+        syncInputs(pageMarginLeftSlider, pageMarginLeftNumber);
+        updateRealtimePreview();
+    };
+    pageMarginRightNumber.oninput = () => {
+        syncInputs(pageMarginRightSlider, pageMarginRightNumber);
         updateRealtimePreview();
     };
     imageSpacingNumber.oninput = () => {
@@ -771,7 +827,10 @@ async function setupOptionsListeners() {
 
             const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
-            const margin = parseInt(pageMarginNumber.value) || 0;
+            const marginTop = parseInt(pageMarginTopNumber.value) || 0;
+            const marginBottom = parseInt(pageMarginBottomNumber.value) || 0;
+            const marginLeft = parseInt(pageMarginLeftNumber.value) || 0;
+            const marginRightTop = parseInt(pageMarginRightNumber.value) || 0;
             const imageSpacing = parseInt(imageSpacingNumber.value) || 0;
             const userColumns = parseInt(columnsNumber.value) || 0;
 
@@ -799,7 +858,10 @@ async function setupOptionsListeners() {
                 numImages,
                 pageWidth,
                 pageHeight,
-                margin,
+                marginTop,
+                marginBottom,
+                marginLeft,
+                marginRightTop,
                 imageSpacing,
                 userColumns,
                 imageAspectRatios,
@@ -1030,10 +1092,31 @@ const routes = {
     					<summary>配置オプション</summary>
 						<div class="accordion-content">
 							<div class="inputs-wrapper">
-								<label for="pageMarginNumber">ページマージン (pt):</label>
+								<label for="pageMarginTop">上マージン (pt):</label>
 								<div class="input-controls">
-									<input type="range" id="pageMarginSlider" value="20" min="0" max="100" step="1">
-									<input type="number" id="pageMarginNumber" value="20" min="0" max="100">
+									<input type="range" id="pageMarginTopSlider" value="20" min="0" max="500" step="1">
+									<input type="number" id="pageMarginTopNumber" value="20" min="0" max="500">
+								</div>
+							</div>
+							<div class="inputs-wrapper">
+								<label for="pageMarginBottom">下マージン (pt):</label>
+								<div class="input-controls">
+									<input type="range" id="pageMarginBottomSlider" value="20" min="0" max="500" step="1">
+									<input type="number" id="pageMarginBottomNumber" value="20" min="0" max="500">
+								</div>
+							</div>
+							<div class="inputs-wrapper">
+								<label for="pageMarginLeft">左マージン (pt):</label>
+								<div class="input-controls">
+									<input type="range" id="pageMarginLeftSlider" value="20" min="0" max="500" step="1">
+									<input type="number" id="pageMarginLeftNumber" value="20" min="0" max="500">
+								</div>
+							</div>
+							<div class="inputs-wrapper">
+								<label for="pageMarginRight">右マージン (pt):</label>
+								<div class="input-controls">
+									<input type="range" id="pageMarginRightSlider" value="20" min="0" max="500" step="1">
+									<input type="number" id="pageMarginRightNumber" value="20" min="0" max="500">
 								</div>
 							</div>
 							<div class="inputs-wrapper">
