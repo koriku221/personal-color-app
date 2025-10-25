@@ -30,6 +30,7 @@
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.296",
     "sortablejs": "^1.15.6"
   }
