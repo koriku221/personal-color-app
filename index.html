@@ -3,74 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDFに画像を貼り付け</title>
+    <title>PCレポート作成</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>PDFに画像を貼り付け</h1>
-        <div class="input-group">
-            <label for="pdfFile" class="btn btn-border"><span>PDFファイルを選択</span></label>
-            <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
-            <span id="pdfFileName" class="file-name">選択されていません</span>
+    <header>
+        <div class="header-content">
+            <a href="#/" class="app-title">PCレポート作成</a>
+            <button class="hamburger-menu" id="hamburger-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
         </div>
-        <div class="input-group">
-            <label for="imageFiles" class="btn btn-border"><span>画像ファイルを選択 (複数選択可)</span></label>
-            <input type="file" id="imageFiles" accept="image/*" multiple style="display: none;">
-            <span id="imageFileNames" class="file-name">選択されていません</span>
-        </div>
-        <div id="imagePreviewContainer" class="image-preview-container sortable-list">
-            <!-- アップロードされた画像のプレビューがここに表示されます -->
-        </div>
-
-        <div class="options-group">
-            <h3>画像配置オプション</h3>
-            <div class="input-group">
-                <label for="pageMarginNumber">ページマージン (pt):</label>
-                <div class="input-controls">
-                    <input type="range" id="pageMarginSlider" value="20" min="0" max="100" step="1">
-                    <input type="number" id="pageMarginNumber" value="20" min="0" max="100">
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="imageSpacingNumber">画像間のスペース (pt):</label>
-                <div class="input-controls">
-                    <input type="range" id="imageSpacingSlider" value="10" min="0" max="50" step="1">
-                    <input type="number" id="imageSpacingNumber" value="10" min="0" max="50">
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="columnsNumber">列数 (0で自動):</label>
-                <div class="input-controls">
-                    <input type="range" id="columnsSlider" value="0" min="0" max="5" step="1">
-                    <input type="number" id="columnsNumber" value="0" min="0" max="5">
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="pageNumberNumber">貼り付けページ番号:</label>
-                <div class="input-controls">
-                    <input type="range" id="pageNumberSlider" value="1" min="1" max="1" step="1">
-                    <input type="number" id="pageNumberNumber" value="1" min="1">
-                </div>
-            </div>
-        </div>
-
-		<div class="btn-wrap">
-        	<a id="embedButton" class="btn btn-stripe"><span>画像をPDFに貼り付け</span></a>
-		</div>
-
-        <h2>画像配置プレビュー</h2>
-        <div id="realtimePreviewContainer" class="realtime-preview-container">
-            <p>画像配置オプションを変更するとここにプレビューが表示されます。</p>
-        </div>
-
-        <h2>PDFプレビュー</h2>
-        <div id="pdfPreviewContainer">
-            <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
-        </div>
-		<div class="btn-wrap">
-        	<a id="downloadLink" class="btn btn-border" style="display:none;"><span>ダウンロード</span></a>
-		</div>
+        <nav id="main-nav" class="main-nav">
+            <a href="#/" id="nav-home">ホーム</a>
+            <a href="#/about" id="nav-about">このアプリについて</a>
+        </nav>
+    </header>
+    <div id="app">
+        <!-- SPAコンテンツがここにロードされます -->
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">

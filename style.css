@@ -1,4 +1,3 @@
-
 *,
 *:before,
 *:after {
@@ -16,7 +15,7 @@ body {
     background-color: #f4f7f6;
     color: #333;
     line-height: 1.6;
-    padding: 30px;
+    padding-top: 65px; /* 固定ヘッダーのためのスペース */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -32,18 +31,6 @@ h1 {
     letter-spacing: 1px;
 }
 
-.container {
-    background-color: #ffffff;
-    padding: 40px;
-    align-items: center;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
 .input-group {
     margin-bottom: 20px;
@@ -327,6 +314,7 @@ h2 {
     min-height: 100px; /* 最小高さを設定 */
     border: 1px solid #eee;
     background-color: #fff;
+	border-radius: 8px;
     display: flex;
     flex-direction: row; /* ドラッグハンドル、コンテンツ、削除ボタンを横に並べる */
     align-items: center; /* 垂直方向中央揃え */
@@ -529,26 +517,6 @@ h2 {
 }
 
 /* オプショングループのスタイル */
-.options-group {
-    margin-top: 30px;
-    padding: 20px;
-    border: 2px solid #000;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    width: 100%;
-    max-width: 600px;
-    text-align: left;
-}
-
-.options-group h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #000;
-    font-size: 1.5em;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 5px;
-}
-
 .options-group .input-group {
     flex-direction: row; /* ラベルと入力を横並びに */
     justify-content: space-between; /* 左右に配置 */
@@ -563,11 +531,17 @@ h2 {
 }
 
 .options-group input[type="number"] {
-    width: 80px; /* 幅を固定 */
+    width: 50px; /* 幅を固定 */
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     text-align: right;
+}
+
+.input-controls{
+    margin-left: auto;
+	display: flex;
+	gap: 10px;
 }
 
 /* SortableJSのゴーストクラスのスタイル */
@@ -580,9 +554,9 @@ h2 {
 
 .inputs-wrapper {
     display: flex;
+	flex-wrap: wrap;
     gap: 10px;
     color: #555;
-    flex-shrink: 0;
     justify-content: flex-start; /* 右寄せから左寄せに変更 */
     box-sizing: border-box;
 }
@@ -597,7 +571,7 @@ h2 {
 }
 
 .caption-font-size-number {
-    width: 50px; /* 数値入力の幅を調整 */
+    width: 30px; /* 数値入力の幅を調整 */
     padding: 3px;
     border: 1px solid #ccc;
     border-radius: 3px;
@@ -636,7 +610,7 @@ h2 {
 
 /* フォントカラー入力 */
 .caption-font-color-input {
-    width: 50px; /* 幅を固定 */
+    width: 30px; /* 幅を固定 */
     height: 30px; /* 高さを調整 */
     padding: 0;
     border: 1px solid #ccc;
@@ -652,4 +626,351 @@ h2 {
     font-size: 0.85em;
     flex-grow: 1; /* 利用可能なスペースを埋める */
     max-width: 150px; /* 最大幅を設定 */
+}
+
+/* --- ヘッダーとナビゲーションのスタイル --- */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    color: black;
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column; /* 小さい画面では縦並び */
+    align-items: center;
+    z-index: 1001; /* サイドバーより手前に表示 */
+}
+
+.header-content {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-title {
+    color: black;
+    text-decoration: none;
+    font-size: 1.8em;
+    font-weight: bold;
+}
+
+.hamburger-menu {
+    display: flex; /* デフォルトで表示 */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+}
+
+.hamburger-menu .bar {
+    width: 100%;
+    height: 3px;
+    background-color: black;
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
+.main-nav {
+    overflow: hidden; /* はみ出たコンテンツを隠す */
+    max-height: 0; /* 初期状態では高さを0にして隠す */
+    transition: max-height 0.5s ease-out; /* アニメーションを追加 */
+    flex-direction: column;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.main-nav.active {
+    max-height: 200px; /* メニューが開いたときの最大高さ (コンテンツに合わせて調整) */
+    /* display: flex; */ /* max-heightで制御するためdisplayは不要 */
+}
+
+.main-nav a {
+    color: black;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: block;
+    transition: background-color 0.3s ease;
+}
+
+.main-nav a:hover {
+    background-color: #f8f8f8;
+}
+
+/* ハンバーガーメニューのアニメーション */
+.hamburger-menu.active .bar:nth-child(1) {
+    transform: translateY(11px) rotate(45deg);
+}
+
+.hamburger-menu.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active .bar:nth-child(3) {
+    transform: translateY(-11px) rotate(-45deg);
+}
+
+/* --- 画像選択画面の新しいレイアウト --- */
+.image-select-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100vh - 100px); /* ヘッダー分を引いた高さ */
+}
+
+.sidebar-toggle {
+    display: none; /* デスクトップでは非表示 */
+    position: fixed;
+    top: 80px;
+    left: 15px;
+    z-index: 1001;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.sidebar-toggle .bar {
+    display: block;
+    width: 22px;
+    height: 3px;
+    margin: 4px 0;
+    background-color: #333;
+    transition: 0.4s;
+}
+
+.sidebar-toggle.active .bar:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.sidebar-toggle.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.sidebar-toggle.active .bar:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
+
+.options-sidebar {
+    position: fixed;
+    top: 65px; /* ヘッダーの高さに合わせる */
+    left: -300px; /* 初期状態では隠す */
+    width: 300px;
+    height: calc(100vh - 65px);
+    background-color: #fff;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: left 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.options-sidebar.active {
+    left: 0;
+}
+
+.panel-resizer {
+    display: none; /* モバイルではリサイザーは不要 */
+}
+
+.preview-main {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* モバイルビュー (991px以下) */
+@media (max-width: 991px) {
+    .sidebar-toggle {
+        display: block; /* モバイルでのみ表示 */
+    }
+
+    .preview-main.sidebar-active {
+        margin-left: 300px;
+    }
+}
+
+/* デスクトップビュー (992px以上) */
+@media (min-width: 992px) {
+    .image-select-layout {
+        flex-direction: row;
+        height: 100%; /* Fill container height */
+    }
+
+    .options-sidebar {
+        position: static;
+        left: 0; /* leftプロパティをリセット */
+        width: 350px; /* 固定幅 */
+        height: auto; /* 高さを自動に */
+        box-shadow: none;
+        border-right: 1px solid #eee;
+        padding: 20px;
+        flex-shrink: 0;
+        transition: none; /* トランジションを無効化 */
+    }
+
+    .panel-resizer {
+        display: none; /* デスクトップでは非表示 */
+    }
+
+    .preview-main {
+        flex-grow: 1;
+        padding: 20px;
+        height: 100%;
+        overflow-y: auto; /* Add scroll for overflow */
+        margin-left: 0; /* マージンをリセット */
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+
+/* デスクトップビュー (768px以上) */
+@media (min-width: 768px) {
+    header {
+        flex-direction: row; /* デスクトップでは横並び */
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 50px;
+    }
+
+    .header-content {
+        width: auto; /* 幅を自動調整 */
+    }
+
+    .hamburger-menu {
+        display: none; /* デスクトップでは非表示 */
+    }
+
+    .main-nav {
+        display: flex; /* デスクトップでは常に表示 */
+        flex-direction: row;
+        width: auto;
+        margin-top: 0;
+    }
+
+    .main-nav a {
+        padding: 5px 15px;
+    }
+}
+
+/* --- ページごとのコンテナスタイル --- */
+.page-pdf-select,
+.page-result,
+.page-about {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+/* 画像選択ページは特殊なレイアウトなので、パディングなどを調整 */
+.page-image-select {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* --- アコーディオン --- */
+.accordion {
+    max-width: 500px;
+    margin-bottom: 7px;
+    border-bottom: 1px solid #ccc;
+}
+
+.accordion summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 10px;
+    color: #000;
+	font-size: 1.5em;
+	font-weight: bold;
+    cursor: pointer;
+}
+
+.accordion summary::-webkit-details-marker {
+    display: none;
+}
+
+.accordion summary::after {
+    transform: translateY(-25%) rotate(45deg);
+    width: 7px;
+    height: 7px;
+    margin-left: 10px;
+    border-bottom: 3px solid #000;
+    border-right: 3px solid #000;
+    content: '';
+    transition: transform .3s;
+}
+
+.accordion[open] summary::after {
+    transform: rotate(225deg);
+}
+
+.accordion p {
+    transform: translateY(-10px);
+    opacity: 0;
+    margin: 0;
+    padding: .3em 2em 1.5em;
+    color: #333333;
+    transition: transform .5s, opacity .5s;
+}
+
+.accordion[open] p {
+    transform: none;
+    opacity: 1;
+}
+
+.accordion-content {
+	padding: 10px;
+}
+
+.preview-main {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin:  20px;
+    flex-grow: 1;
 }
