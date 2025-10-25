@@ -236,20 +236,30 @@ h2 {
 
 #pdfPreviewContainer {
     width: 100%;
+    min-height: 300px; /* 複数ページ表示のため、最小高さを設定 */
     border: 2px solid #000;
     border-radius: 8px;
     background-color: #f9f9f9;
-    min-height: 300px; /* Minimum height for the preview area */
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* 複数ページを縦に並べる */
+    justify-content: center; 
     align-items: center;
-    overflow: hidden; /* Ensure embed content stays within bounds */
+    overflow-y: auto; /* 複数ページでスクロール可能にする */
     margin-top: 10px;
+    padding: 10px; /* 各canvas間の余白のため */
+    box-sizing: border-box;
 }
 
-#pdfPreviewContainer embed {
-    border: none;
-    display: block; /* Remove extra space below embed */
+#pdfPreviewContainer canvas {
+    width: 100%;
+    height: auto; /* アスペクト比を維持 */
+    display: block;
+    margin-bottom: 10px; /* 各ページ間の余白 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 各ページに影を追加 */
+}
+
+#pdfPreviewContainer canvas:last-child {
+    margin-bottom: 0; /* 最後のページの下マージンは不要 */
 }
 
 #pdfPreviewContainer p {

@@ -38,8 +38,8 @@ export const setPdfPageSize = (size) => { pdfPageSize = size; };
 export const setSelectedImageFiles = (files) => { selectedImageFiles = files; };
 export const setProcessedPdfBytes = (bytes) => { processedPdfBytes = bytes; };
 
-// Function to display PDF preview
-export function displayPdfPreview(file) {
+// Function to display PDF preview using PDF.js and Canvas
+export async function displayPdfPreview(file) {
     const pdfPreviewContainer = getElement('pdfPreviewContainer');
     if (!pdfPreviewContainer) return;
 
@@ -47,34 +47,115 @@ export function displayPdfPreview(file) {
         pdfPreviewContainer.innerHTML = '<p>PDFファイルを選択してください。</p>';
         return;
     }
+
+    pdfPreviewContainer.innerHTML = ''; // 既存のコンテンツをクリア
+
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
         if (e.target && e.target.result) {
-            const pdfUrl = URL.createObjectURL(file);
-            const viewportHeight = window.innerHeight - 250;
-            pdfPreviewContainer.innerHTML = `
-                <embed src="${pdfUrl}" type="application/pdf" width="100%" height="${viewportHeight}px" />
-            `;
+            const pdfData = new Uint8Array(e.target.result);
+            try {
+                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                const pdf = await loadingTask.promise;
+
+                // 最初のページのサイズを取得して設定
+                const firstPage = await pdf.getPage(1);
+                const firstViewport = firstPage.getViewport({ scale: 1 });
+                setPdfPageSize({ width: firstViewport.width, height: firstViewport.height });
+
+                // すべてのページをレンダリング
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 1 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+
+                    // コンテナの幅に合わせてスケールを調整
+                    const containerWidth = pdfPreviewContainer.clientWidth;
+                    const scale = containerWidth / viewport.width;
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+                    canvas.classList.add('pdf-preview-canvas'); // スタイル適用のためクラスを追加
+
+                    pdfPreviewContainer.appendChild(canvas);
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: scaledViewport,
+                    };
+                    await page.render(renderContext).promise;
+                }
+
+                // コンテナのアスペクト比は最初のページに合わせて設定 (不要になったため削除)
+                // pdfPreviewContainer.style.paddingBottom = `${(firstViewport.height / firstViewport.width) * 100}%`;
+
+            } catch (error) {
+                console.error('PDFプレビューのレンダリングに失敗しました:', error);
+                pdfPreviewContainer.innerHTML = '<p>PDFプレビューの表示に失敗しました。</p>';
+            }
         }
     };
     reader.readAsArrayBuffer(file);
 }
 
-// Function to display processed PDF preview
-export function displayProcessedPdfPreview(pdfBytes) {
+// Function to display processed PDF preview using PDF.js and Canvas
+export async function displayProcessedPdfPreview(pdfBytes) {
     const pdfPreviewContainer = getElement('pdfPreviewContainer');
     const downloadLink = getElement('downloadLink');
     if (!pdfPreviewContainer || !downloadLink) return;
 
+    pdfPreviewContainer.innerHTML = ''; // 既存のコンテンツをクリア
+
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const viewportHeight = window.innerHeight - 250;
-    pdfPreviewContainer.innerHTML = `
-                <embed src="${url}" type="application/pdf" width="100%" height="${viewportHeight}px" />
-            `;
-    downloadLink.href = url;
-    downloadLink.download = 'modified.pdf';
-    downloadLink.style.display = 'block';
+    const url = URL.createObjectURL(blob); // Blob URLを作成
+
+    try {
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+        const pdf = await loadingTask.promise;
+
+        // 最初のページのサイズを取得して設定
+        const firstPage = await pdf.getPage(1);
+        const firstViewport = firstPage.getViewport({ scale: 1 });
+        // setPdfPageSize({ width: firstViewport.width, height: firstViewport.height }); // 既にdisplayPdfPreviewで設定済みか、不要
+
+        // すべてのページをレンダリング
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            // コンテナの幅に合わせてスケールを調整
+            const containerWidth = pdfPreviewContainer.clientWidth;
+            const scale = containerWidth / viewport.width;
+            const scaledViewport = page.getViewport({ scale: scale });
+
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            canvas.classList.add('pdf-preview-canvas'); // スタイル適用のためクラスを追加
+
+            pdfPreviewContainer.appendChild(canvas);
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: scaledViewport,
+            };
+            await page.render(renderContext).promise;
+        }
+
+                // コンテナのアスペクト比は最初のページに合わせて設定 (不要になったため削除)
+                // pdfPreviewContainer.style.paddingBottom = `${(firstViewport.height / firstViewport.width) * 100}%`;
+
+        downloadLink.href = url;
+        downloadLink.download = 'modified.pdf';
+        downloadLink.style.display = 'block';
+
+    } catch (error) {
+        console.error('処理済みPDFプレビューのレンダリングに失敗しました:', error);
+        pdfPreviewContainer.innerHTML = '<p>処理済みPDFプレビューの表示に失敗しました。</p>';
+    }
 }
 
 export function calculateImagePlacements(
