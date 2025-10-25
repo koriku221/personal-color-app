@@ -778,12 +778,13 @@ header {
     position: fixed;
     top: 65px; /* ヘッダーの高さに合わせる */
     left: -300px; /* 初期状態では隠す */
-    width: 300px;
+    width: 350px;
     height: calc(100vh - 65px);
     background-color: #fff;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     padding: 20px;
     overflow-y: auto;
+    overscroll-behavior-y: contain; /* スクロール連鎖を防ぐ */
     z-index: 1000;
     transition: left 0.3s ease-in-out;
     display: flex;
@@ -815,7 +816,7 @@ header {
     }
 
     .preview-main.sidebar-active {
-        margin-left: 300px;
+        margin-left: 350px;
     }
 }
 
