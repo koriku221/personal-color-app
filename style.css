@@ -236,15 +236,16 @@ h2 {
 
 #pdfPreviewContainer {
     width: 100%;
-    min-height: 300px; /* 複数ページ表示のため、最小高さを設定 */
+    min-height: 300px; /* 初期値として300pxを設定 */
+    /* heightはJavaScriptで動的に設定 */
     border: 2px solid #000;
     border-radius: 8px;
     background-color: #f9f9f9;
     display: flex;
     flex-direction: column; /* 複数ページを縦に並べる */
-    justify-content: center; 
+    justify-content: center; /* ユーザーのフィードバックによりcenterを維持 */
     align-items: center;
-    overflow-y: auto; /* 複数ページでスクロール可能にする */
+    overflow-y: auto; /* スクロール可能にする */
     margin-top: 10px;
     padding: 10px; /* 各canvas間の余白のため */
     box-sizing: border-box;
