@@ -10,6 +10,10 @@ html {
   box-sizing: border-box;
 }
 
+header {
+ 	display: grid;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7f6;
@@ -30,7 +34,6 @@ h1 {
     text-align: center;
     letter-spacing: 1px;
 }
-
 
 .input-group {
     margin-bottom: 20px;
@@ -650,14 +653,13 @@ header {
     padding: 15px 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     display: flex;
-    flex-direction: column; /* 小さい画面では縦並び */
+	flex-wrap: wrap;
     align-items: center;
+	justify-content: space-between;
     z-index: 1001; /* サイドバーより手前に表示 */
 }
 
 .header-content {
-    width: 100%;
-    max-width: 800px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -666,7 +668,6 @@ header {
 .app-title {
     color: black;
     text-decoration: none;
-    font-size: 1.8em;
     font-weight: bold;
 }
 
@@ -679,6 +680,7 @@ header {
     background: transparent;
     border: none;
     cursor: pointer;
+	justify-self: end;
     padding: 0;
     z-index: 10;
 }
@@ -689,6 +691,92 @@ header {
     background-color: black;
     border-radius: 2px;
     transition: all 0.3s ease-in-out;
+}
+
+/* --- ステップナビゲーションのスタイル --- */
+.step-nav {
+    max-width: 800px;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+  	flex: 1;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.step-nav .nav-item {
+	flex: 1;
+    position: relative;
+    list-style-type: none;
+    text-align: center;
+    text-transform: uppercase;
+    width: 33.333%;
+    color: #999999;
+    font-weight: bold;
+}
+
+.step-nav .nav-item:hover {
+    color: #000;
+}
+
+.step-nav .nav-item.active {
+    color: #007bff; /* アクティブなステップの色 */
+}
+
+.nav-item:before {
+    display: block;
+    width: 18px;
+    height: 18px;
+    margin: 7px auto 10px auto;
+    content: '';
+    text-align: center;
+    border-radius: 50%;
+    background-color: #F5F5F5;
+}
+
+.nav-item:after {
+    position: absolute;
+    z-index: -1;
+    top: 15px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    content: '';
+    background-color: #F5F5F5;
+    transform-origin: left center;
+    transform: scaleX(0);
+}
+
+.nav-item:first-child:after {
+    content: none;
+}
+
+.nav-item.active,
+.nav-item.complete{
+    color: #0070BD;
+}
+
+.nav-item.active:before {
+    background-color: #0070BD;
+}
+
+.nav-item.complete:before {
+	border: solid 2px #0070BD;
+}
+
+.nav-item.active:after,
+.nav-item.complete:after {
+    background-color: #0070BD;
+    transform: scaleX(1);
+    background-color: #0070BD;
+}
+
+.step-nav .nav-item,
+.step-nav .nav-item:before,
+.step-nav .nav-item:after {
+    transition: all 0.3s ease; /* 色・背景・位置変化を滑らかに */
 }
 
 .main-nav {
@@ -704,7 +792,6 @@ header {
 
 .main-nav.active {
     max-height: 200px; /* メニューが開いたときの最大高さ (コンテンツに合わせて調整) */
-    /* display: flex; */ /* max-heightで制御するためdisplayは不要 */
 }
 
 .main-nav a {
@@ -810,19 +897,42 @@ header {
     transition: margin-left 0.3s ease-in-out;
 }
 
-/* モバイルビュー (991px以下) */
-@media (max-width: 991px) {
-    .sidebar-toggle {
-        display: block; /* モバイルでのみ表示 */
-    }
-
-    .preview-main.sidebar-active {
-        margin-left: 350px;
-    }
-}
-
 /* デスクトップビュー (992px以上) */
-@media (min-width: 992px) {
+@media (min-width: 769px) {
+    header {
+		grid-template-columns: auto 1fr auto; /* デスクトップでは1行に3要素 */
+		grid-template-rows: auto auto;   /* 2行構成にする */
+		grid-template-areas:
+			"app-title step-nav hamburger-menu"
+			"main-nav main-nav";
+        justify-content: center;
+        align-items: center;
+        padding: 15px 50px;
+    }
+
+    .header-content {
+        max-width: 800px; /* 最大幅を設定 */
+        justify-content: space-between; /* タイトルとハンバーガーメニューを左右に配置 */
+    }
+
+	.app-title {
+		font-size: 1.8em;
+    	grid-area: app-title;
+	}
+
+    .step-nav {
+        margin-top: 15px; /* ヘッダーコンテンツとの間隔 */
+    	grid-area: step-nav;
+    }
+
+    .hamburger-menu {
+    	grid-area: hamburger-menu;
+    }
+
+    .main-nav {
+    	grid-area: main-nav;
+    }
+	
     .image-select-layout {
         flex-direction: row;
         height: 100%; /* Fill container height */
@@ -863,33 +973,43 @@ header {
     }
 }
 
+/* モバイルビュー (991px以下) */
+@media (max-width: 768px) {
+	header {
+		grid-template-columns: 1fr auto; /* タイトルとメニューだけ1行目に */
+		grid-template-rows: auto auto;   /* 2行構成にする */
+		grid-template-areas:
+			"app-title hamburger-menu"
+			"step-nav step-nav"
+			"main-nav main-nav";
+	}
 
-/* デスクトップビュー (768px以上) */
-@media (min-width: 768px) {
-    header {
-        flex-direction: row; /* デスクトップでは横並び */
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 50px;
-    }
+	.app-title {
+    	grid-area: app-title;
+		font-size: 1.2em;
+	}
 
-    .header-content {
-        width: auto; /* 幅を自動調整 */
-    }
+	/* ナビだけを2行目に落とす */
+	.step-nav {
+		text-align: center;
+		margin-top: 8px;
+    	grid-area: step-nav;
+	}
 
-    .hamburger-menu {
-        display: none; /* デスクトップでは非表示 */
-    }
+	.hamburger-menu {
+    	grid-area: hamburger-menu;
+	}
 
     .main-nav {
-        display: flex; /* デスクトップでは常に表示 */
-        flex-direction: row;
-        width: auto;
-        margin-top: 0;
+    	grid-area: main-nav;
     }
 
-    .main-nav a {
-        padding: 5px 15px;
+    .sidebar-toggle {
+        display: block; /* モバイルでのみ表示 */
+    }
+
+    .preview-main.sidebar-active {
+        margin-left: 350px;
     }
 }
 
