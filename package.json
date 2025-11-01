@@ -1,10 +1,12 @@
 {
   "name": "personal-color-app",
   "version": "1.0.0",
+  "homepage": "https://koriku221.github.io/personal-color-app",
   "description": "",
   "scripts": {
     "start": "parcel index.html --host 0.0.0.0",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +22,7 @@
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "events": "^3.3.0",
+    "gh-pages": "^6.3.0",
     "heic-convert": "^1.2.4",
     "parcel": "^2.12.0",
     "path-browserify": "^1.0.1",
