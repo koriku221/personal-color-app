@@ -4,8 +4,8 @@
   "homepage": "https://koriku221.github.io/personal-color-app",
   "description": "",
   "scripts": {
-    "start": "parcel index.html --host 0.0.0.0",
-    "build": "parcel build index.html",
+	"start": "parcel index.html",
+	"build": "parcel build index.html --public-url ./",
     "deploy": "gh-pages -d dist"
   },
   "keywords": [],
@@ -33,6 +33,7 @@
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
     "sortablejs": "^1.15.6"

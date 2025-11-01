@@ -1,3 +1,5 @@
+import './style.css';
+import Sortable from 'sortablejs';
 import { router } from './router.js';
 import { getElement } from './utils.js';
 

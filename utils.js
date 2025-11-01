@@ -28,6 +28,7 @@ export let selectedPdfFile = null;
 export let pdfPageSize = { width: 595.28, height: 841.89 }; // A4のデフォルト値(pt)
 export let selectedImageFiles = []; // [{ file: File, previewUrl: string, pdfEmbedBytes: ArrayBuffer, pdfEmbedType: string, aspectRatio: number }]
 export let processedPdfBytes = null; // 処理済みPDFのバイトデータを保持
+export let selectedPdfPage = 1; // カルーセルで選択されたページ番号
 
 // DOM要素を動的に取得するためのヘルパー関数
 export const getElement = (id) => document.getElementById(id);
@@ -37,6 +38,7 @@ export const setSelectedPdfFile = (file) => { selectedPdfFile = file; };
 export const setPdfPageSize = (size) => { pdfPageSize = size; };
 export const setSelectedImageFiles = (files) => { selectedImageFiles = files; };
 export const setProcessedPdfBytes = (bytes) => { processedPdfBytes = bytes; };
+export const setSelectedPdfPage = (page) => { selectedPdfPage = page; };
 
 // 共通のPDFページレンダリング関数
 async function renderPdfPages(pdf, pdfPreviewContainer, firstViewport) {
@@ -114,8 +116,6 @@ export async function displayPdfPreview(file) {
     };
     reader.readAsArrayBuffer(file);
 }
-
-// Function to display processed PDF preview using PDF.js and Canvas
 export async function displayProcessedPdfPreview(pdfBytes) {
     const pdfPreviewContainer = getElement('pdfPreviewContainer');
     const downloadLink = getElement('downloadLink');
@@ -124,23 +124,20 @@ export async function displayProcessedPdfPreview(pdfBytes) {
     pdfPreviewContainer.innerHTML = ''; // 既存のコンテンツをクリア
 
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob); // Blob URLを作成
+    const url = URL.createObjectURL(blob);
 
     try {
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
         const pdf = await loadingTask.promise;
 
-        // 最初のページのサイズを取得
         const firstPage = await pdf.getPage(1);
         const firstViewport = firstPage.getViewport({ scale: 1 });
-        // setPdfPageSize({ width: firstViewport.width, height: firstViewport.height }); // 既にdisplayPdfPreviewで設定済みか、不要
 
         await renderPdfPages(pdf, pdfPreviewContainer, firstViewport);
 
         downloadLink.href = url;
         downloadLink.download = 'modified.pdf';
         downloadLink.style.display = 'block';
-
     } catch (error) {
         console.error('処理済みPDFプレビューのレンダリングに失敗しました:', error);
         pdfPreviewContainer.innerHTML = '<p>処理済みPDFプレビューの表示に失敗しました。</p>';

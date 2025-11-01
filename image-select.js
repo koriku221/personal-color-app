@@ -1,4 +1,4 @@
-import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview } from './utils.js';
+import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, pdfjsLib, setSelectedPdfPage, selectedPdfPage, processedPdfBytes } from './utils.js';
 import Sortable from 'sortablejs'; // SortableJSをインポート
 
 // Function to display image previews
@@ -207,9 +207,11 @@ export function setupImageSelectListeners() {
     const imageFilesInput = getElement('imageFiles');
     const imageFileNamesSpan = getElement('imageFileNames');
     const prevButton = getElement('prevToPdfSelect');
+    const clearButton = getElement('clearButton');
+    const nextButton = getElement('nextToResult');
     const imagePreviewContainer = getElement('imagePreviewContainer');
 
-    if (!imageFilesInput || !imageFileNamesSpan || !prevButton || !imagePreviewContainer) {
+    if (!imageFilesInput || !imageFileNamesSpan || !prevButton || !clearButton || !nextButton || !imagePreviewContainer) {
         console.warn('画像選択画面のDOM要素が見つかりませんでした。');
         return;
     }
@@ -262,9 +264,9 @@ export function setupImageSelectListeners() {
                 const aspectRatio = img.width / img.height;
                 const id = Date.now() + Math.random();
 
-                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 10, captionFontColor: '#000000', captionFontFamily: 'Helvetica' });
+                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 10, captionFontColor: '#000000', captionFontFamily: 'NotoSansJP' });
             }
-            setSelectedImageFiles(tempSelectedImageFiles);
+            setSelectedImageFiles([...selectedImageFiles, ...tempSelectedImageFiles]);
             displayImagePreviews(selectedImageFiles);
             updateRealtimePreview(); // リアルタイムプレビューを更新
             imageFileNamesSpan.textContent = `${selectedImageFiles.length} 個の画像が選択されました`;
@@ -279,6 +281,31 @@ export function setupImageSelectListeners() {
 
     prevButton.onclick = () => {
         window.location.hash = '/pdf-select';
+    };
+
+    nextButton.onclick = () => {
+        window.location.hash = '/result';
+    };
+
+    clearButton.onclick = () => {
+        // プレビューURLを解放
+        selectedImageFiles.forEach(imageObj => {
+            if (imageObj.previewUrl) {
+                URL.revokeObjectURL(imageObj.previewUrl);
+            }
+        });
+
+        setSelectedImageFiles([]); // グローバルな画像ファイルリストをクリア
+        displayImagePreviews(selectedImageFiles); // プレビュー表示をクリア
+        updateRealtimePreview(); // リアルタイムプレビューもクリア
+        if (imageFileNamesSpan) {
+            imageFileNamesSpan.textContent = '選択されていません';
+        }
+        // ファイル選択インプットをリセット
+        if (imageFilesInput) {
+            imageFilesInput.value = '';
+        }
+        console.log('選択された画像がすべてクリアされました。');
     };
 
     // 既存の画像があればプレビューを表示
@@ -303,4 +330,101 @@ export function setupImageSelectListeners() {
             console.log('画像の順序が更新されました:', selectedImageFiles.map(img => img.file.name));
         }
     });
+
+    setupPdfPageCarousel();
+}
+
+export async function renderPdfPageAsBackground() {
+    const realtimePreviewContainer = getElement('realtimePreviewContainer');
+    if (!realtimePreviewContainer) return;
+
+    if (!selectedPdfFile) {
+        realtimePreviewContainer.style.backgroundImage = 'none';
+        return;
+    }
+
+    try {
+        const pageNumber = selectedPdfPage;
+        const pdfBytes = processedPdfBytes || await selectedPdfFile.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
+        const pdf = await loadingTask.promise;
+
+        if (pageNumber < 1 || pageNumber > pdf.numPages) {
+            return;
+        }
+
+        const page = await pdf.getPage(pageNumber);
+        const viewport = page.getViewport({ scale: 1.5 });
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        await page.render(renderContext).promise;
+
+        realtimePreviewContainer.style.backgroundImage = `url(${canvas.toDataURL()})`;
+        realtimePreviewContainer.style.backgroundSize = 'contain';
+        realtimePreviewContainer.style.backgroundRepeat = 'no-repeat';
+        realtimePreviewContainer.style.backgroundPosition = 'center';
+
+    } catch (error) {
+        console.error('PDFページのレンダリングに失敗しました:', error);
+        realtimePreviewContainer.style.backgroundImage = 'none';
+    }
+}
+
+export async function setupPdfPageCarousel() {
+    const carouselContainer = getElement('pdfPageCarousel');
+    if (!carouselContainer || !selectedPdfFile) return;
+
+    carouselContainer.innerHTML = ''; // Clear previous content
+
+    try {
+        const pdfBytes = processedPdfBytes || await selectedPdfFile.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
+        const pdf = await loadingTask.promise;
+        const numPages = pdf.numPages;
+
+        for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 0.5 }); // Use a smaller scale for thumbnails
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            canvas.dataset.pageNumber = i;
+            canvas.classList.add('pdf-carousel-page');
+            if (i === 1) {
+                canvas.classList.add('selected');
+            }
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport,
+            };
+            await page.render(renderContext).promise;
+
+            canvas.onclick = async (event) => {
+                const pageNum = parseInt(event.target.dataset.pageNumber);
+                setSelectedPdfPage(pageNum);
+                
+                // Update selected state
+                document.querySelectorAll('.pdf-carousel-page').forEach(p => p.classList.remove('selected'));
+                event.target.classList.add('selected');
+
+                // Update background preview
+                renderPdfPageAsBackground();
+            };
+
+            carouselContainer.appendChild(canvas);
+        }
+    } catch (error) {
+        console.error('PDF page carousel setup failed:', error);
+    }
 }

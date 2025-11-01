@@ -21,7 +21,7 @@ export const routes = {
                 <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
             </div>
             <div class="btn-wrap">
-                <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ (画像選択)</span></a>
+                <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ</span></a>
             </div>
         `,
         onMount: setupPdfSelectListeners
@@ -41,7 +41,7 @@ export const routes = {
                 <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
             </div>
             <div class="btn-wrap">
-                <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ (画像選択)</span></a>
+                <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ</span></a>
             </div>
         `,
         onMount: setupPdfSelectListeners
@@ -55,9 +55,12 @@ export const routes = {
                     <div class="panel-resizer" id="panel-resizer"></div>
                     <h1>画像配置</h1>
                     <div class="input-group">
-                        <label for="imageFiles" class="btn btn-border"><span>画像ファイルを選択 (複数選択可)</span></label>
+                        <label for="imageFiles" class="btn btn-border"><span>画像ファイルを選択</span></label>
                         <input type="file" id="imageFiles" accept="image/*" multiple style="display: none;">
                         <span id="imageFileNames" class="file-name">選択されていません</span>
+                    </div>
+                    <div class="input-group">
+                        <a id="clearButton" class="btn btn-border"><span>オプションクリア</span></a>
                     </div>
 					<details class="accordion">
     					<summary>画像一覧</summary>
@@ -110,13 +113,6 @@ export const routes = {
 									<input type="number" id="columnsNumber" value="0" min="0" max="5">
 								</div>
 							</div>
-							<div class="inputs-wrapper">
-								<label for="pageNumberNumber">貼り付けページ番号:</label>
-								<div class="input-controls">
-									<input type="range" id="pageNumberSlider" value="1" min="1" max="1" step="1">
-							<input type="number" id="pageNumberNumber" value="1" min="1">
-								</div>
-							</div>
 						</div>
                     </details>
                 </div>
@@ -130,9 +126,11 @@ export const routes = {
                     <div id="realtimePreviewContainer" class="realtime-preview-container">
                         <p>配置オプションを変更するとここにプレビューが表示されます。</p>
                     </div>
+                    <div id="pdfPageCarousel" class="pdf-page-carousel"></div>
                     <div class="btn-wrap">
-                        <a id="prevToPdfSelect" class="btn btn-stripe"><span>前へ (PDF選択)</span></a>
-                        <a id="embedButton" class="btn btn-stripe"><span>画像をPDFに貼り付け</span></a>
+                        <a id="prevToPdfSelect" class="btn btn-stripe"><span>前へ</span></a>
+                        <a id="embedButton" class="btn btn-stripe"><span>貼り付け</span></a>
+                        <a id="nextToResult" class="btn btn-stripe"><span>次へ</span></a>
                     </div>
                 </div>
             </div>

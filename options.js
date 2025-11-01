@@ -1,49 +1,7 @@
-import { getElement, loadingOverlay, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, pdfjsLib, calculateImagePlacements, updateRealtimePreview, setPdfPageSize } from './utils.js';
-
-export async function renderPdfPageAsBackground() {
-    const realtimePreviewContainer = getElement('realtimePreviewContainer');
-    const pageNumberNumber = getElement('pageNumberNumber');
-    if (!realtimePreviewContainer || !pageNumberNumber) return;
-
-    if (!selectedPdfFile) {
-        realtimePreviewContainer.style.backgroundImage = 'none';
-        return;
-    }
-
-    try {
-        const pageNumber = parseInt(pageNumberNumber.value) || 1;
-        const pdfBytes = await selectedPdfFile.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
-        const pdf = await loadingTask.promise;
-
-        if (pageNumber < 1 || pageNumber > pdf.numPages) {
-            return;
-        }
-
-        const page = await pdf.getPage(pageNumber);
-        const viewport = page.getViewport({ scale: 1.5 });
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        const renderContext = {
-            canvasContext: context,
-            viewport: viewport
-        };
-        await page.render(renderContext).promise;
-
-        realtimePreviewContainer.style.backgroundImage = `url(${canvas.toDataURL()})`;
-        realtimePreviewContainer.style.backgroundSize = 'contain';
-        realtimePreviewContainer.style.backgroundRepeat = 'no-repeat';
-        realtimePreviewContainer.style.backgroundPosition = 'center';
-
-    } catch (error) {
-        console.error('PDFページのレンダリングに失敗しました:', error);
-        realtimePreviewContainer.style.backgroundImage = 'none';
-    }
-}
+import * as PDFLib from 'pdf-lib';
+import fontkit from "@pdf-lib/fontkit";
+import { getElement, loadingOverlay, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, pdfjsLib, calculateImagePlacements, updateRealtimePreview, setPdfPageSize, selectedPdfPage, processedPdfBytes } from './utils.js';
+import { renderPdfPageAsBackground, setupPdfPageCarousel } from './image-select.js';
 
 export async function setupOptionsListeners() {
     const embedButton = getElement('embedButton');
@@ -51,8 +9,6 @@ export async function setupOptionsListeners() {
     const imageSpacingNumber = getElement('imageSpacingNumber');
     const columnsSlider = getElement('columnsSlider');
     const columnsNumber = getElement('columnsNumber');
-    const pageNumberSlider = getElement('pageNumberSlider');
-    const pageNumberNumber = getElement('pageNumberNumber');
     const realtimePreviewContainer = getElement('realtimePreviewContainer');
 
     // New inputs for individual margins
@@ -70,8 +26,7 @@ export async function setupOptionsListeners() {
 		!pageMarginBottomSlider || !pageMarginBottomNumber ||
 		!pageMarginLeftSlider || !pageMarginLeftNumber ||
 		!pageMarginRightSlider || !pageMarginRightNumber ||
-        !imageSpacingSlider || !imageSpacingNumber || !columnsSlider || !columnsNumber ||
-        !pageNumberSlider || !pageNumberNumber || !realtimePreviewContainer) {
+        !imageSpacingSlider || !imageSpacingNumber || !columnsSlider || !columnsNumber || !realtimePreviewContainer) {
         console.warn('オプション設定画面のDOM要素が見つかりませんでした。');
         return;
     }
@@ -104,11 +59,6 @@ export async function setupOptionsListeners() {
         columnsNumber.value = columnsSlider.value;
         updateRealtimePreview();
     };
-    pageNumberSlider.oninput = () => {
-        pageNumberNumber.value = pageNumberSlider.value;
-        updateRealtimePreview();
-        renderPdfPageAsBackground();
-    };
 
     pageMarginTopNumber.oninput = () => {
         syncInputs(pageMarginTopSlider, pageMarginTopNumber);
@@ -134,11 +84,6 @@ export async function setupOptionsListeners() {
         syncInputs(columnsSlider, columnsNumber);
         updateRealtimePreview();
     };
-    pageNumberNumber.oninput = () => {
-        syncInputs(pageNumberSlider, pageNumberNumber);
-        updateRealtimePreview();
-        renderPdfPageAsBackground();
-    };
 
     embedButton.onclick = async () => {
         if (!selectedPdfFile || selectedImageFiles.length === 0) {
@@ -149,11 +94,14 @@ export async function setupOptionsListeners() {
         loadingOverlay.style.display = 'flex';
 
         try {
-            const pdfBytes = await selectedPdfFile.arrayBuffer();
+            const pdfBytes = processedPdfBytes || await selectedPdfFile.arrayBuffer();
             const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用
             const pages = pdfDoc.getPages();
 
-            const pageNumber = parseInt(pageNumberNumber.value) || 1;
+			// 🔹 日本語フォントなどのカスタムフォントを使う前に登録
++       	pdfDoc.registerFontkit(fontkit);
+
+            const pageNumber = selectedPdfPage;
             if (pageNumber < 1 || pageNumber > pages.length) {
                 alert(`無効なページ番号です。1から${pages.length}の間で指定してください。`);
                 loadingOverlay.style.display = 'none';
@@ -232,7 +180,9 @@ export async function setupOptionsListeners() {
                     if (!fontCache[fontFamily]) {
                         if (fontFamily === 'NotoSansJP') {
                             try {
-                                const fontBytes = await fetch('fonts/NotoSansJP-Regular.ttf').then(res => res.arrayBuffer());
+								const fontUrl = new URL('./public/fonts/NotoSansJP-Regular.ttf', import.meta.url);
+								const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
+								console.log('Font bytes length:', fontBytes.byteLength);
                                 fontCache[fontFamily] = await pdfDoc.embedFont(fontBytes);
                             } catch (error) {
                                 console.error('NotoSansJPフォントの埋め込みに失敗しました。Helveticaにフォールバックします。', error);
@@ -264,7 +214,9 @@ export async function setupOptionsListeners() {
             }
 
             setProcessedPdfBytes(await pdfDoc.save()); // 処理済みPDFを保存
-            window.location.hash = '/result'; // 結果画面へ遷移
+			
+            alert('画像をPDFに貼り付けました。');
+            setupPdfPageCarousel(); // プレビューを更新
         } catch (error) {
             console.error('Error during PDF processing:', error);
             alert('PDF処理中にエラーが発生しました。');
@@ -281,10 +233,6 @@ export async function setupOptionsListeners() {
             const pdfBytes = await selectedPdfFile.arrayBuffer();
             const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用
             const pages = pdfDoc.getPages();
-            pageNumberSlider.max = pages.length;
-            pageNumberNumber.max = pages.length;
-            pageNumberSlider.value = 1;
-            pageNumberNumber.value = 1;
             const firstPage = pages[0];
             const { width, height } = firstPage.getSize();
             setPdfPageSize({ width, height }); // utils.jsのsetterを使用

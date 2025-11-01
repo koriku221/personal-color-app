@@ -1,3 +1,4 @@
+import * as PDFLib from 'pdf-lib';
 import { getElement, selectedPdfFile, setSelectedPdfFile, setPdfPageSize, displayPdfPreview } from './utils.js';
 
 export function setupPdfSelectListeners() {
@@ -17,10 +18,10 @@ export function setupPdfSelectListeners() {
             displayPdfPreview(selectedPdfFile);
             pdfFileNameSpan.textContent = selectedPdfFile.name;
             try {
-                const pdfBytes = await selectedPdfFile.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用
-                const pages = pdfDoc.getPages();
-                setPdfPageSize(pages[0].getSize()); // 最初のページのサイズを取得
+            const pdfBytes = await selectedPdfFile.arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用
+            const pages = pdfDoc.getPages();
+            setPdfPageSize(pages[0].getSize()); // 最初のページのサイズを取得
             } catch (error) {
                 console.error('PDFのページサイズの取得に失敗しました:', error);
                 setPdfPageSize({ width: 595.28, height: 841.89 }); // エラー時はデフォルト(A4)に戻す
@@ -34,7 +35,7 @@ export function setupPdfSelectListeners() {
 
     nextButton.onclick = () => {
         if (selectedPdfFile) {
-            window.location.hash = '/image-select';
+                window.location.hash = '/image-select';
         } else {
             alert('PDFファイルを選択してください。');
         }

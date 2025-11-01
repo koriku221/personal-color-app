@@ -784,7 +784,6 @@ header {
     transition: max-height 0.5s ease-out; /* アニメーションを追加 */
     flex-direction: column;
     width: 100%;
-    max-width: 800px;
     margin-top: 10px;
     text-align: center;
 }
@@ -1104,4 +1103,35 @@ header {
     align-items: center;
     margin:  20px;
     flex-grow: 1;
+}
+
+/* PDFページカルーセルのスタイル */
+.pdf-page-carousel {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 0;
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    background-color: #f9f9f9;
+}
+
+.pdf-carousel-page {
+    height: 100px; /* 高さを固定 */
+    border: 3px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: border-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.pdf-carousel-page:hover {
+    transform: scale(1.05);
+}
+
+.pdf-carousel-page.selected {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
 }
