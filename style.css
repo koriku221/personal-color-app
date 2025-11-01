@@ -745,8 +745,9 @@ header {
     height: 2px;
     content: '';
     background-color: #F5F5F5;
-    transform-origin: left center;
-    transform: scaleX(0);
+    background-image: linear-gradient(to right, #0070BD, #0070BD);
+    background-size: 0% 100%;
+    background-repeat: no-repeat;
 }
 
 .nav-item:first-child:after {
@@ -768,9 +769,7 @@ header {
 
 .nav-item.active:after,
 .nav-item.complete:after {
-    background-color: #0070BD;
-    transform: scaleX(1);
-    background-color: #0070BD;
+    background-size: 100% 100%;
 }
 
 .step-nav .nav-item,
