@@ -1,4 +1,4 @@
-import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, pdfjsLib, setSelectedPdfPage, selectedPdfPage, processedPdfBytes } from './utils.js';
+import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, pdfjsLib, setSelectedPdfPage, selectedPdfPage, processedPdfBytes, pdfDocumentInstance, setPdfDocumentInstance } from './utils.js';
 import Sortable from 'sortablejs'; // SortableJSをインポート
 
 // Function to display image previews
@@ -203,6 +203,30 @@ export function removeImage(idToRemove) {
     }
 }
 
+export function resetImageSelection() {
+    const imageFilesInput = getElement('imageFiles');
+    const imageFileNamesSpan = getElement('imageFileNames');
+
+    // プレビューURLを解放
+    selectedImageFiles.forEach(imageObj => {
+        if (imageObj.previewUrl) {
+            URL.revokeObjectURL(imageObj.previewUrl);
+        }
+    });
+
+    setSelectedImageFiles([]); // グローバルな画像ファイルリストをクリア
+    displayImagePreviews(selectedImageFiles); // プレビュー表示をクリア
+    updateRealtimePreview(); // リアルタイムプレビューもクリア
+    if (imageFileNamesSpan) {
+        imageFileNamesSpan.textContent = '選択されていません';
+    }
+    // ファイル選択インプットをリセット
+    if (imageFilesInput) {
+        imageFilesInput.value = '';
+    }
+    console.log('選択された画像がすべてクリアされました。');
+}
+
 export function setupImageSelectListeners() {
     const imageFilesInput = getElement('imageFiles');
     const imageFileNamesSpan = getElement('imageFileNames');
@@ -287,26 +311,7 @@ export function setupImageSelectListeners() {
         window.location.hash = '/result';
     };
 
-    clearButton.onclick = () => {
-        // プレビューURLを解放
-        selectedImageFiles.forEach(imageObj => {
-            if (imageObj.previewUrl) {
-                URL.revokeObjectURL(imageObj.previewUrl);
-            }
-        });
-
-        setSelectedImageFiles([]); // グローバルな画像ファイルリストをクリア
-        displayImagePreviews(selectedImageFiles); // プレビュー表示をクリア
-        updateRealtimePreview(); // リアルタイムプレビューもクリア
-        if (imageFileNamesSpan) {
-            imageFileNamesSpan.textContent = '選択されていません';
-        }
-        // ファイル選択インプットをリセット
-        if (imageFilesInput) {
-            imageFilesInput.value = '';
-        }
-        console.log('選択された画像がすべてクリアされました。');
-    };
+    clearButton.onclick = resetImageSelection;
 
     // 既存の画像があればプレビューを表示
     displayImagePreviews(selectedImageFiles);
@@ -345,9 +350,19 @@ export async function renderPdfPageAsBackground() {
 
     try {
         const pageNumber = selectedPdfPage;
-        const pdfBytes = processedPdfBytes || await selectedPdfFile.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
-        const pdf = await loadingTask.promise;
+        let pdf;
+		if (pdfDocumentInstance) {
+            pdf = pdfDocumentInstance;
+        } else if (processedPdfBytes) {
+            const loadingTask = pdfjsLib.getDocument({ data: processedPdfBytes.slice(0) });
+            pdf = await loadingTask.promise;
+            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
+        } else { // どちらもない場合はselectedPdfFileからロード
+            const pdfBytes = await selectedPdfFile.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
+            pdf = await loadingTask.promise;
+            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
+        }
 
         if (pageNumber < 1 || pageNumber > pdf.numPages) {
             return;
@@ -385,30 +400,46 @@ export async function setupPdfPageCarousel() {
     carouselContainer.innerHTML = ''; // Clear previous content
 
     try {
-        const pdfBytes = processedPdfBytes || await selectedPdfFile.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
-        const pdf = await loadingTask.promise;
+        let pdf;
+		if (pdfDocumentInstance) {
+            pdf = pdfDocumentInstance;
+        } else if (processedPdfBytes) {
+            const loadingTask = pdfjsLib.getDocument({ data: processedPdfBytes.slice(0) });
+            pdf = await loadingTask.promise;
+            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
+        } else { // どちらもない場合はselectedPdfFileからロード
+            const pdfBytes = await selectedPdfFile.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
+            pdf = await loadingTask.promise;
+            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
+        }
         const numPages = pdf.numPages;
 
-        for (let i = 1; i <= numPages; i++) {
-            const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 0.5 }); // Use a smaller scale for thumbnails
+        const renderPromises = [];
 
+        for (let i = 1; i <= numPages; i++) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
             canvas.dataset.pageNumber = i;
             canvas.classList.add('pdf-carousel-page');
-            if (i === 1) {
+            if (i === selectedPdfPage) {
                 canvas.classList.add('selected');
             }
 
-            const renderContext = {
-                canvasContext: context,
-                viewport: viewport,
-            };
-            await page.render(renderContext).promise;
+            carouselContainer.appendChild(canvas); // キャンバスを先にDOMに追加
+
+            renderPromises.push((async (pageNum, canvas, context) => {
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 0.5 }); // Use a smaller scale for thumbnails
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport,
+                };
+                await page.render(renderContext).promise;
+            })(i, canvas, context));
 
             canvas.onclick = async (event) => {
                 const pageNum = parseInt(event.target.dataset.pageNumber);
@@ -421,9 +452,8 @@ export async function setupPdfPageCarousel() {
                 // Update background preview
                 renderPdfPageAsBackground();
             };
-
-            carouselContainer.appendChild(canvas);
         }
+        await Promise.all(renderPromises); // すべてのレンダリングが完了するのを待つ
     } catch (error) {
         console.error('PDF page carousel setup failed:', error);
     }

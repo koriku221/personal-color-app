@@ -29,6 +29,7 @@ export let pdfPageSize = { width: 595.28, height: 841.89 }; // A4のデフォル
 export let selectedImageFiles = []; // [{ file: File, previewUrl: string, pdfEmbedBytes: ArrayBuffer, pdfEmbedType: string, aspectRatio: number }]
 export let processedPdfBytes = null; // 処理済みPDFのバイトデータを保持
 export let selectedPdfPage = 1; // カルーセルで選択されたページ番号
+export let pdfDocumentInstance = null; // PDFドキュメントインスタンスをキャッシュ
 
 // DOM要素を動的に取得するためのヘルパー関数
 export const getElement = (id) => document.getElementById(id);
@@ -37,8 +38,18 @@ export const getElement = (id) => document.getElementById(id);
 export const setSelectedPdfFile = (file) => { selectedPdfFile = file; };
 export const setPdfPageSize = (size) => { pdfPageSize = size; };
 export const setSelectedImageFiles = (files) => { selectedImageFiles = files; };
-export const setProcessedPdfBytes = (bytes) => { processedPdfBytes = bytes; };
+export const setProcessedPdfBytes = async (bytes) => {
+    processedPdfBytes = bytes;
+    if (bytes) {
+        const loadingTask = pdfjsLib.getDocument({ data: processedPdfBytes.slice(0) });
+        const pdf = await loadingTask.promise;
+        setPdfDocumentInstance(pdf);
+    } else {
+        setPdfDocumentInstance(null);
+    }
+};
 export const setSelectedPdfPage = (page) => { selectedPdfPage = page; };
+export const setPdfDocumentInstance = (instance) => { pdfDocumentInstance = instance; }; // Setter関数を追加
 
 // 共通のPDFページレンダリング関数
 async function renderPdfPages(pdf, pdfPreviewContainer, firstViewport) {
@@ -95,7 +106,7 @@ export async function displayPdfPreview(file) {
         if (e.target && e.target.result) {
             const pdfData = new Uint8Array(e.target.result);
             try {
-                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                const loadingTask = pdfjsLib.getDocument({ data: pdfData.slice(0) });
                 const pdf = await loadingTask.promise;
 
                 // 最初のページのサイズを取得して設定

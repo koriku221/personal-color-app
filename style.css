@@ -940,7 +940,6 @@ header {
         position: static;
         left: 0; /* leftプロパティをリセット */
         width: 350px; /* 固定幅 */
-        height: auto; /* 高さを自動に */
         box-shadow: none;
         border-right: 1px solid #eee;
         padding: 20px;

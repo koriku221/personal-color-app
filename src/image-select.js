@@ -459,7 +459,7 @@ async function setupPdfPageCarousel() {
 
     try {
         const pdfBytes = await selectedPdfFile.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
         const pdf = await loadingTask.promise;
         const numPages = pdf.numPages;
 

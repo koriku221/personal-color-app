@@ -1,5 +1,5 @@
 import * as PDFLib from 'pdf-lib';
-import { getElement, selectedPdfFile, setSelectedPdfFile, setPdfPageSize, displayPdfPreview } from './utils.js';
+import { getElement, selectedPdfFile, setSelectedPdfFile, setPdfPageSize, displayPdfPreview, pdfjsLib, setPdfDocumentInstance } from './utils.js';
 
 export function setupPdfSelectListeners() {
     const pdfFile = getElement('pdfFile');
@@ -18,10 +18,14 @@ export function setupPdfSelectListeners() {
             displayPdfPreview(selectedPdfFile);
             pdfFileNameSpan.textContent = selectedPdfFile.name;
             try {
-            const pdfBytes = await selectedPdfFile.arrayBuffer();
-            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用
-            const pages = pdfDoc.getPages();
-            setPdfPageSize(pages[0].getSize()); // 最初のページのサイズを取得
+                const pdfBytes = await selectedPdfFile.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) }); // PDF.jsでドキュメントをロード
+                const pdf = await loadingTask.promise;
+                setPdfDocumentInstance(pdf); // PDFドキュメントインスタンスをキャッシュ
+
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用 (PDF-LIB用)
+                const pages = pdfDoc.getPages();
+                setPdfPageSize(pages[0].getSize()); // 最初のページのサイズを取得
             } catch (error) {
                 console.error('PDFのページサイズの取得に失敗しました:', error);
                 setPdfPageSize({ width: 595.28, height: 841.89 }); // エラー時はデフォルト(A4)に戻す

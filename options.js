@@ -1,7 +1,7 @@
 import * as PDFLib from 'pdf-lib';
 import fontkit from "@pdf-lib/fontkit";
 import { getElement, loadingOverlay, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, pdfjsLib, calculateImagePlacements, updateRealtimePreview, setPdfPageSize, selectedPdfPage, processedPdfBytes } from './utils.js';
-import { renderPdfPageAsBackground, setupPdfPageCarousel } from './image-select.js';
+import { renderPdfPageAsBackground, setupPdfPageCarousel, resetImageSelection } from './image-select.js';
 
 export async function setupOptionsListeners() {
     const embedButton = getElement('embedButton');
@@ -213,10 +213,12 @@ export async function setupOptionsListeners() {
                 }
             }
 
-            setProcessedPdfBytes(await pdfDoc.save()); // 処理済みPDFを保存
+            await setProcessedPdfBytes(await pdfDoc.save()); // 処理済みPDFを保存
 			
             alert('画像をPDFに貼り付けました。');
             setupPdfPageCarousel(); // プレビューを更新
+            resetImageSelection(); // 画像をクリア
+			renderPdfPageAsBackground(); // プレビューを更新
         } catch (error) {
             console.error('Error during PDF processing:', error);
             alert('PDF処理中にエラーが発生しました。');
