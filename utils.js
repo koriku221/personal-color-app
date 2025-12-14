@@ -352,7 +352,7 @@ export function updateRealtimePreview() { // Reverted to no arguments
 
     const numImages = selectedImageFiles.length;
     const imageAspectRatios = selectedImageFiles.map(img => img.aspectRatio);
-    const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 10);
+    const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 20);
     const captionMarginTopBottom = 5;
 
     // Pass individual margins to calculateImagePlacements

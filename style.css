@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
 *,
 *:before,
 *:after {
@@ -50,7 +52,6 @@ label {
 }
 
 .file-name {
-    font-style: italic;
     color: #666;
     margin-left: 5px;
 }
@@ -268,7 +269,6 @@ h2 {
 
 #pdfPreviewContainer p {
     color: #888;
-    font-style: italic;
 }
 
 /* Loading Overlay Styles */
@@ -434,7 +434,6 @@ h2 {
 
 .image-preview-container p {
     color: #888;
-    font-style: italic;
     width: 100%; /* テキストが中央に表示されるように */
     text-align: center;
     padding: 20px; /* メッセージのパディング */
@@ -486,7 +485,6 @@ h2 {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-style: italic;
     color: #888;
     flex-shrink: 0; /* 縮小しない */
 }

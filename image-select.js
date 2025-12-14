@@ -86,7 +86,7 @@ export function appendImageToPreview(src, fileName, id) { // indexではなくid
     captionFontSizeSlider.type = 'range';
     captionFontSizeSlider.min = '5';
     captionFontSizeSlider.max = '30';
-    captionFontSizeSlider.value = imageObj ? imageObj.captionFontSize : '10';
+    captionFontSizeSlider.value = imageObj ? imageObj.captionFontSize : '20';
     captionFontSizeSlider.classList.add('caption-font-size-slider');
     captionFontSizeWrapper.appendChild(captionFontSizeSlider);
 
@@ -94,7 +94,7 @@ export function appendImageToPreview(src, fileName, id) { // indexではなくid
     captionFontSizeNumber.type = 'number';
     captionFontSizeNumber.min = '5';
     captionFontSizeNumber.max = '30';
-    captionFontSizeNumber.value = imageObj ? imageObj.captionFontSize : '10';
+    captionFontSizeNumber.value = imageObj ? imageObj.captionFontSize : '20';
     captionFontSizeNumber.classList.add('caption-font-size-number');
     captionFontSizeWrapper.appendChild(captionFontSizeNumber);
 
@@ -288,7 +288,7 @@ export function setupImageSelectListeners() {
                 const aspectRatio = img.width / img.height;
                 const id = Date.now() + Math.random();
 
-                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 10, captionFontColor: '#000000', captionFontFamily: 'NotoSansJP' });
+                tempSelectedImageFiles.push({ id: id, file: file, previewUrl: previewUrl, pdfEmbedBytes: pdfEmbedBytes, pdfEmbedType: pdfEmbedType, aspectRatio: aspectRatio, caption: file.name, captionFontSize: 20, captionFontColor: '#000000', captionFontFamily: 'NotoSansJP' });
             }
             setSelectedImageFiles([...selectedImageFiles, ...tempSelectedImageFiles]);
             displayImagePreviews(selectedImageFiles);
@@ -369,7 +369,7 @@ export async function renderPdfPageAsBackground() {
         }
 
         const page = await pdf.getPage(pageNumber);
-        const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale: 1 });
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');

@@ -135,7 +135,7 @@ export async function setupOptionsListeners() {
 
             const numImages = embeddedImages.length;
             const imageAspectRatios = embeddedImages.map(img => img.width / img.height);
-            const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 10);
+            const captionFontSizes = selectedImageFiles.map(img => img.captionFontSize || 20);
             const captionMarginTopBottom = 5;
 
             const placements = calculateImagePlacements(
@@ -172,7 +172,7 @@ export async function setupOptionsListeners() {
 
                 if (selectedImageFiles[i].caption) {
                     const captionText = selectedImageFiles[i].caption;
-                    const fontSize = selectedImageFiles[i].captionFontSize || 10;
+                    const fontSize = selectedImageFiles[i].captionFontSize || 20;
 
                     let font;
                     const fontFamily = selectedImageFiles[i].captionFontFamily;
