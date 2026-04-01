@@ -56,6 +56,7 @@ export const setPdfDocumentInstance = (instance) => { pdfDocumentInstance = inst
 
 export async function getPdfDocument() {
     if (pdfDocumentInstance) return pdfDocumentInstance;
+    if (!processedPdfBytes && !selectedPdfFile) return null;
     const data = processedPdfBytes
         ? processedPdfBytes.slice(0)
         : (await selectedPdfFile.arrayBuffer());

@@ -1,4 +1,4 @@
-import { getElement, loadingOverlay, showLoading, hideLoading, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, setSelectedPdfPage, selectedPdfPage, getPdfDocument } from './utils.js';
+import { getElement, loadingOverlay, showLoading, hideLoading, showToast, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, setSelectedPdfPage, selectedPdfPage, getPdfDocument } from './utils.js';
 import Sortable from 'sortablejs'; // SortableJSをインポート
 
 // Function to display image previews
@@ -290,8 +290,17 @@ export function setupImageSelectListeners() {
                     pdfEmbedType = outputMimeType;
                 }
                 const img = new Image();
-                img.src = previewUrl;
-                await new Promise(resolve => img.onload = resolve);
+                try {
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = previewUrl;
+                    });
+                } catch {
+                    URL.revokeObjectURL(previewUrl);
+                    showToast(`画像の読み込みに失敗しました: ${file.name}`, 'error');
+                    continue;
+                }
                 const aspectRatio = img.width / img.height;
                 const id = Date.now() + Math.random();
 

@@ -31,6 +31,14 @@ export async function setupOptionsListeners() {
         return;
     }
 
+    // layoutOptionsの現在値をスライダー・数値入力に反映（ページ再訪時のズレを防ぐ）
+    pageMarginTopSlider.value    = pageMarginTopNumber.value    = layoutOptions.marginTop;
+    pageMarginBottomSlider.value = pageMarginBottomNumber.value = layoutOptions.marginBottom;
+    pageMarginLeftSlider.value   = pageMarginLeftNumber.value   = layoutOptions.marginLeft;
+    pageMarginRightSlider.value  = pageMarginRightNumber.value  = layoutOptions.marginRight;
+    imageSpacingSlider.value     = imageSpacingNumber.value     = layoutOptions.imageSpacing;
+    columnsSlider.value          = columnsNumber.value          = layoutOptions.columns;
+
     function syncInputs(slider, numberInput) {
         slider.value = numberInput.value;
     }
