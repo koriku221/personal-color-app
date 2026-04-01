@@ -6,17 +6,14 @@ export function displayImagePreviews(imageFileObjects) {
     const imagePreviewContainer = getElement('imagePreviewContainer');
     if (!imagePreviewContainer) return;
 
-    console.log('displayImagePreviews: 複数画像プレビュー表示関数が呼び出されました。');
     imagePreviewContainer.innerHTML = ''; // 以前のプレビューをクリア
 
     if (imageFileObjects.length === 0) {
         imagePreviewContainer.innerHTML = '<p>画像ファイルを選択するとここにプレビューが表示されます。</p>';
-        console.log('displayImagePreviews: 画像ファイルが選択されていません。メッセージを表示しました。');
         return;
     }
 
-    imageFileObjects.forEach((imageObj, index) => {
-        console.log(`displayImagePreviews: ファイル ${index} (${imageObj.file.name}) のプレビューを表示中...`);
+    imageFileObjects.forEach((imageObj) => {
         appendImageToPreview(imageObj.previewUrl, imageObj.file.name, imageObj.id); // imageObj.idを使用
     });
 }
@@ -182,12 +179,10 @@ export function appendImageToPreview(src, fileName, id) { // indexではなくid
     previewItem.appendChild(textAndControlsWrapper);
     previewItem.appendChild(removeButton);
     imagePreviewContainer.appendChild(previewItem);
-    console.log(`displayImagePreviews: ファイル ${id} (${fileName}) の画像プレビューアイテムがコンテナに追加されました。`);
 }
 
 export function removeImage(idToRemove) {
     const imageFileNamesSpan = getElement('imageFileNames');
-    console.log(`removeImage: ID ${idToRemove} の画像を削除します。`);
     const indexToRemove = selectedImageFiles.findIndex(img => img.id === idToRemove);
 
     if (indexToRemove > -1) {
@@ -224,7 +219,6 @@ export function resetImageSelection() {
     if (imageFilesInput) {
         imageFilesInput.value = '';
     }
-    console.log('選択された画像がすべてクリアされました。');
 }
 
 async function correctImageOrientation(src, outputType = 'image/jpeg') {
@@ -272,18 +266,12 @@ export function setupImageSelectListeners() {
                         const outputBuffer = await heicConvert({
                             buffer: buffer,
                             format: 'JPEG',
-                            quality: 0.7
-                        });
-                        const previewBlob = new Blob([outputBuffer.buffer], { type: 'image/jpeg' });
-                        previewUrl = URL.createObjectURL(previewBlob);
-
-                        const pdfEmbedOutputBuffer = await heicConvert({
-                            buffer: buffer,
-                            format: 'JPEG',
                             quality: 0.9
                         });
-                        pdfEmbedBytes = pdfEmbedOutputBuffer.buffer;
+                        pdfEmbedBytes = outputBuffer.buffer;
                         pdfEmbedType = 'image/jpeg';
+                        const previewBlob = new Blob([pdfEmbedBytes], { type: 'image/jpeg' });
+                        previewUrl = URL.createObjectURL(previewBlob);
                     } catch (error) {
                         console.error(`HEIC変換エラー: ${file.name}`, error);
                         previewUrl = URL.createObjectURL(file);
@@ -291,12 +279,13 @@ export function setupImageSelectListeners() {
                         pdfEmbedType = file.type;
                     }
                 } else {
+                    const outputMimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
                     const rawUrl = URL.createObjectURL(file);
-                    const correctedBlob = await correctImageOrientation(rawUrl, 'image/jpeg');
+                    const correctedBlob = await correctImageOrientation(rawUrl, outputMimeType);
                     URL.revokeObjectURL(rawUrl);
                     previewUrl = URL.createObjectURL(correctedBlob);
                     pdfEmbedBytes = await correctedBlob.arrayBuffer();
-                    pdfEmbedType = 'image/jpeg';
+                    pdfEmbedType = outputMimeType;
                 }
                 const img = new Image();
                 img.src = previewUrl;
@@ -348,7 +337,6 @@ export function setupImageSelectListeners() {
             selectedImageFiles.splice(newIndex, 0, movedItem);
 
             updateRealtimePreview();
-            console.log('画像の順序が更新されました:', selectedImageFiles.map(img => img.file.name));
         }
     });
 

@@ -297,7 +297,6 @@ export function updateRealtimePreview() { // Reverted to no arguments
     const realtimePreviewContainer = getElement('realtimePreviewContainer');
     if (!realtimePreviewContainer) return;
 
-    console.log('updateRealtimePreview: リアルタイムプレビュー更新関数が呼び出されました。');
     const images = realtimePreviewContainer.querySelectorAll('.realtime-preview-image');
     images.forEach(img => img.remove());
 
@@ -316,7 +315,6 @@ export function updateRealtimePreview() { // Reverted to no arguments
         if (!selectedPdfFile) {
             realtimePreviewContainer.innerHTML = '<p>画像ファイルを選択するとここにプレビューが表示されます。</p>';
         }
-        console.log('updateRealtimePreview: 画像ファイルが選択されていません。');
         return;
     }
 
@@ -373,7 +371,6 @@ export function updateRealtimePreview() { // Reverted to no arguments
 
     if (!placements) {
         realtimePreviewContainer.innerHTML = '<p>画像を配置できませんでした。オプションを調整してください。</p>';
-        console.log('updateRealtimePreview: 画像配置計算失敗。');
         return;
     }
 

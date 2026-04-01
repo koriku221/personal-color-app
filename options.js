@@ -91,6 +91,9 @@ export async function setupOptionsListeners() {
             return;
         }
 
+        // フォントはPDFDocumentインスタンスに紐付いているため、毎回クリアする
+        Object.keys(fontCache).forEach(k => delete fontCache[k]);
+
         loadingOverlay.style.display = 'flex';
 
         try {
@@ -114,7 +117,7 @@ export async function setupOptionsListeners() {
             const marginTop = parseInt(pageMarginTopNumber.value) || 0;
             const marginBottom = parseInt(pageMarginBottomNumber.value) || 0;
             const marginLeft = parseInt(pageMarginLeftNumber.value) || 0;
-            const marginRightTop = parseInt(pageMarginRightNumber.value) || 0;
+            const marginRight = parseInt(pageMarginRightNumber.value) || 0;
             const imageSpacing = parseInt(imageSpacingNumber.value) || 0;
             const userColumns = parseInt(columnsNumber.value) || 0;
 
@@ -145,7 +148,7 @@ export async function setupOptionsListeners() {
                 marginTop,
                 marginBottom,
                 marginLeft,
-                marginRightTop,
+                marginRight,
                 imageSpacing,
                 userColumns,
                 imageAspectRatios,
@@ -182,7 +185,6 @@ export async function setupOptionsListeners() {
                             try {
 								const fontUrl = new URL('./public/fonts/NotoSansJP-Regular.ttf', import.meta.url);
 								const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
-								console.log('Font bytes length:', fontBytes.byteLength);
                                 fontCache[fontFamily] = await pdfDoc.embedFont(fontBytes);
                             } catch (error) {
                                 console.error('NotoSansJPフォントの埋め込みに失敗しました。Helveticaにフォールバックします。', error);
