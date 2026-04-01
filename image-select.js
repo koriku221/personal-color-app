@@ -227,6 +227,19 @@ export function resetImageSelection() {
     console.log('選択された画像がすべてクリアされました。');
 }
 
+async function correctImageOrientation(src, outputType = 'image/jpeg') {
+    const img = new Image();
+    img.src = src;
+    await new Promise(resolve => img.onload = resolve);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+
+    return new Promise(resolve => canvas.toBlob(resolve, outputType, 0.9));
+}
+
 export function setupImageSelectListeners() {
     const imageFilesInput = getElement('imageFiles');
     const imageFileNamesSpan = getElement('imageFileNames');
@@ -278,9 +291,12 @@ export function setupImageSelectListeners() {
                         pdfEmbedType = file.type;
                     }
                 } else {
-                    previewUrl = URL.createObjectURL(file);
-                    pdfEmbedBytes = await file.arrayBuffer();
-                    pdfEmbedType = file.type;
+                    const rawUrl = URL.createObjectURL(file);
+                    const correctedBlob = await correctImageOrientation(rawUrl, 'image/jpeg');
+                    URL.revokeObjectURL(rawUrl);
+                    previewUrl = URL.createObjectURL(correctedBlob);
+                    pdfEmbedBytes = await correctedBlob.arrayBuffer();
+                    pdfEmbedType = 'image/jpeg';
                 }
                 const img = new Image();
                 img.src = previewUrl;
