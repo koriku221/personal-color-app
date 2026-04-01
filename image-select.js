@@ -1,4 +1,4 @@
-import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, setSelectedPdfPage, selectedPdfPage, getPdfDocument } from './utils.js';
+import { getElement, loadingOverlay, showLoading, hideLoading, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, setSelectedPdfPage, selectedPdfPage, getPdfDocument } from './utils.js';
 import Sortable from 'sortablejs'; // SortableJSをインポート
 
 // Function to display image previews
@@ -189,7 +189,9 @@ export function removeImage(idToRemove) {
         if (selectedImageFiles[indexToRemove] && selectedImageFiles[indexToRemove].previewUrl) {
             URL.revokeObjectURL(selectedImageFiles[indexToRemove].previewUrl);
         }
-        selectedImageFiles.splice(indexToRemove, 1);
+        const newFiles = [...selectedImageFiles];
+        newFiles.splice(indexToRemove, 1);
+        setSelectedImageFiles(newFiles);
         displayImagePreviews(selectedImageFiles);
         updateRealtimePreview();
         if (imageFileNamesSpan) {
@@ -250,7 +252,7 @@ export function setupImageSelectListeners() {
     imageFilesInput.onchange = async (event) => {
         const target = event.target;
         if (target.files && target.files.length > 0) {
-            loadingOverlay.style.display = 'flex';
+            showLoading('画像を変換中...');
             const newFiles = Array.from(target.files);
             const tempSelectedImageFiles = [];
 
@@ -297,14 +299,15 @@ export function setupImageSelectListeners() {
             }
             setSelectedImageFiles([...selectedImageFiles, ...tempSelectedImageFiles]);
             displayImagePreviews(selectedImageFiles);
-            updateRealtimePreview(); // リアルタイムプレビューを更新
+            updateRealtimePreview();
             imageFileNamesSpan.textContent = `${selectedImageFiles.length} 個の画像が選択されました`;
-            loadingOverlay.style.display = 'none';
+            target.value = ''; // 同じファイルを再選択できるようリセット
+            hideLoading();
         } else {
             setSelectedImageFiles([]);
             displayImagePreviews(selectedImageFiles);
             imageFileNamesSpan.textContent = '選択されていません';
-            loadingOverlay.style.display = 'none';
+            hideLoading();
         }
     };
 
@@ -330,12 +333,10 @@ export function setupImageSelectListeners() {
         ghostClass: 'sortable-ghost',
         handle: '.drag-handle',
         onEnd: function (evt) {
-            const oldIndex = evt.oldIndex;
-            const newIndex = evt.newIndex;
-
-            const [movedItem] = selectedImageFiles.splice(oldIndex, 1);
-            selectedImageFiles.splice(newIndex, 0, movedItem);
-
+            const newFiles = [...selectedImageFiles];
+            const [movedItem] = newFiles.splice(evt.oldIndex, 1);
+            newFiles.splice(evt.newIndex, 0, movedItem);
+            setSelectedImageFiles(newFiles);
             updateRealtimePreview();
         }
     });

@@ -66,40 +66,29 @@ export async function getPdfDocument() {
 
 // 共通のPDFページレンダリング関数
 async function renderPdfPages(pdf, pdfPreviewContainer, firstViewport) {
-
-    // PDF選択後にjustify-contentをflex-startに変更
     pdfPreviewContainer.style.justifyContent = 'flex-start';
-	
-    // PDFプレビューコンテナのスタイルを動的に設定
-    // コンテナの幅に基づいて高さを計算し、アスペクト比を維持
+
     const containerWidth = pdfPreviewContainer.clientWidth;
-    const calculatedHeight = containerWidth / (firstViewport.width / firstViewport.height);
-    pdfPreviewContainer.style.height = `${calculatedHeight}px`;
+    pdfPreviewContainer.style.height = `${containerWidth / (firstViewport.width / firstViewport.height)}px`;
     pdfPreviewContainer.style.aspectRatio = `${firstViewport.width} / ${firstViewport.height}`;
 
-    // すべてのページをレンダリング
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 1 });
+    // キャンバスを順序通りに先に追加し、レンダリングは並列実行
+    const canvases = Array.from({ length: pdf.numPages }, () => {
         const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+        canvas.classList.add('pdf-preview-canvas');
+        pdfPreviewContainer.appendChild(canvas);
+        return canvas;
+    });
 
-        // コンテナの幅に合わせてスケールを調整
+    await Promise.all(canvases.map(async (canvas, idx) => {
+        const page = await pdf.getPage(idx + 1);
+        const viewport = page.getViewport({ scale: 1 });
         const scale = containerWidth / viewport.width;
-        const scaledViewport = page.getViewport({ scale: scale });
-
+        const scaledViewport = page.getViewport({ scale });
         canvas.height = scaledViewport.height;
         canvas.width = scaledViewport.width;
-        canvas.classList.add('pdf-preview-canvas'); // スタイル適用のためクラスを追加
-
-        pdfPreviewContainer.appendChild(canvas);
-
-        const renderContext = {
-            canvasContext: context,
-            viewport: scaledViewport,
-        };
-        await page.render(renderContext).promise;
-    }
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport: scaledViewport }).promise;
+    }));
 }
 
 // Function to display PDF preview using PDF.js and Canvas
@@ -300,7 +289,13 @@ export function calculateImagePlacements(
     return placements;
 }
 
-export function updateRealtimePreview() { // Reverted to no arguments
+let _updateTimer = null;
+export function updateRealtimePreview() {
+    clearTimeout(_updateTimer);
+    _updateTimer = setTimeout(_renderPreview, 80);
+}
+
+function _renderPreview() {
     const realtimePreviewContainer = getElement('realtimePreviewContainer');
     if (!realtimePreviewContainer) return;
 
@@ -395,6 +390,16 @@ export function updateRealtimePreview() { // Reverted to no arguments
             realtimePreviewContainer.appendChild(captionElement);
         }
     });
+}
+
+export function showLoading(message = '処理中...') {
+    const msgEl = loadingOverlay.querySelector('p');
+    if (msgEl) msgEl.textContent = message;
+    loadingOverlay.style.display = 'flex';
+}
+
+export function hideLoading() {
+    loadingOverlay.style.display = 'none';
 }
 
 export function showToast(message, type = 'info') {

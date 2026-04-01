@@ -1,6 +1,6 @@
 import * as PDFLib from 'pdf-lib';
 import fontkit from "@pdf-lib/fontkit";
-import { getElement, loadingOverlay, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, calculateImagePlacements, updateRealtimePreview, selectedPdfPage, processedPdfBytes, layoutOptions, setLayoutOptions, showToast } from './utils.js';
+import { getElement, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, calculateImagePlacements, updateRealtimePreview, selectedPdfPage, processedPdfBytes, layoutOptions, setLayoutOptions, showToast, showLoading, hideLoading } from './utils.js';
 import { renderPdfPageAsBackground, setupPdfPageCarousel, resetImageSelection } from './image-select.js';
 
 export async function setupOptionsListeners() {
@@ -106,7 +106,7 @@ export async function setupOptionsListeners() {
         // フォントはPDFDocumentインスタンスに紐付いているため、毎回クリアする
         Object.keys(fontCache).forEach(k => delete fontCache[k]);
 
-        loadingOverlay.style.display = 'flex';
+        showLoading('PDFに画像を埋め込み中...');
 
         try {
             const pdfBytes = processedPdfBytes || await selectedPdfFile.arrayBuffer();
@@ -119,7 +119,7 @@ export async function setupOptionsListeners() {
             const pageNumber = selectedPdfPage;
             if (pageNumber < 1 || pageNumber > pages.length) {
                 showToast(`無効なページ番号です。1から${pages.length}の間で指定してください。`, 'error');
-                loadingOverlay.style.display = 'none';
+                hideLoading();
                 return;
             }
             const targetPage = pages[pageNumber - 1];
@@ -137,7 +137,7 @@ export async function setupOptionsListeners() {
                     image = await pdfDoc.embedPng(imageObj.pdfEmbedBytes);
                 } else {
                     showToast(`サポートされていない画像形式です: ${imageObj.file.name} (JPEG, PNG, HEICのみ)`, 'error');
-                    loadingOverlay.style.display = 'none';
+                    hideLoading();
                     return;
                 }
                 embeddedImages.push(image);
@@ -165,7 +165,7 @@ export async function setupOptionsListeners() {
 
             if (!placements) {
                 showToast('画像をページに配置できませんでした。オプションを調整してください。', 'error');
-                loadingOverlay.style.display = 'none';
+                hideLoading();
                 return;
             }
 
@@ -232,7 +232,7 @@ export async function setupOptionsListeners() {
             console.error('Error during PDF processing:', error);
             showToast('PDF処理中にエラーが発生しました。', 'error');
         } finally {
-            loadingOverlay.style.display = 'none';
+            hideLoading();
         }
     };
 
