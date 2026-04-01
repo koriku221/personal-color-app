@@ -1,6 +1,6 @@
 import * as PDFLib from 'pdf-lib';
 import fontkit from "@pdf-lib/fontkit";
-import { getElement, loadingOverlay, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, pdfjsLib, calculateImagePlacements, updateRealtimePreview, setPdfPageSize, selectedPdfPage, processedPdfBytes } from './utils.js';
+import { getElement, loadingOverlay, selectedPdfFile, selectedImageFiles, pdfPageSize, fontCache, setProcessedPdfBytes, calculateImagePlacements, updateRealtimePreview, selectedPdfPage, processedPdfBytes, layoutOptions, setLayoutOptions, showToast } from './utils.js';
 import { renderPdfPageAsBackground, setupPdfPageCarousel, resetImageSelection } from './image-select.js';
 
 export async function setupOptionsListeners() {
@@ -37,57 +37,69 @@ export async function setupOptionsListeners() {
 
     pageMarginTopSlider.oninput = () => {
         pageMarginTopNumber.value = pageMarginTopSlider.value;
+        setLayoutOptions({ marginTop: parseInt(pageMarginTopSlider.value) });
         updateRealtimePreview();
     };
     pageMarginBottomSlider.oninput = () => {
         pageMarginBottomNumber.value = pageMarginBottomSlider.value;
+        setLayoutOptions({ marginBottom: parseInt(pageMarginBottomSlider.value) });
         updateRealtimePreview();
     };
     pageMarginLeftSlider.oninput = () => {
         pageMarginLeftNumber.value = pageMarginLeftSlider.value;
+        setLayoutOptions({ marginLeft: parseInt(pageMarginLeftSlider.value) });
         updateRealtimePreview();
     };
     pageMarginRightSlider.oninput = () => {
         pageMarginRightNumber.value = pageMarginRightSlider.value;
+        setLayoutOptions({ marginRight: parseInt(pageMarginRightSlider.value) });
         updateRealtimePreview();
     };
     imageSpacingSlider.oninput = () => {
         imageSpacingNumber.value = imageSpacingSlider.value;
+        setLayoutOptions({ imageSpacing: parseInt(imageSpacingSlider.value) });
         updateRealtimePreview();
     };
     columnsSlider.oninput = () => {
         columnsNumber.value = columnsSlider.value;
+        setLayoutOptions({ columns: parseInt(columnsSlider.value) });
         updateRealtimePreview();
     };
 
     pageMarginTopNumber.oninput = () => {
         syncInputs(pageMarginTopSlider, pageMarginTopNumber);
+        setLayoutOptions({ marginTop: parseInt(pageMarginTopNumber.value) });
         updateRealtimePreview();
     };
     pageMarginBottomNumber.oninput = () => {
         syncInputs(pageMarginBottomSlider, pageMarginBottomNumber);
+        setLayoutOptions({ marginBottom: parseInt(pageMarginBottomNumber.value) });
         updateRealtimePreview();
     };
     pageMarginLeftNumber.oninput = () => {
         syncInputs(pageMarginLeftSlider, pageMarginLeftNumber);
+        setLayoutOptions({ marginLeft: parseInt(pageMarginLeftNumber.value) });
         updateRealtimePreview();
     };
     pageMarginRightNumber.oninput = () => {
         syncInputs(pageMarginRightSlider, pageMarginRightNumber);
+        setLayoutOptions({ marginRight: parseInt(pageMarginRightNumber.value) });
         updateRealtimePreview();
     };
     imageSpacingNumber.oninput = () => {
         syncInputs(imageSpacingSlider, imageSpacingNumber);
+        setLayoutOptions({ imageSpacing: parseInt(imageSpacingNumber.value) });
         updateRealtimePreview();
     };
     columnsNumber.oninput = () => {
         syncInputs(columnsSlider, columnsNumber);
+        setLayoutOptions({ columns: parseInt(columnsNumber.value) });
         updateRealtimePreview();
     };
 
     embedButton.onclick = async () => {
         if (!selectedPdfFile || selectedImageFiles.length === 0) {
-            alert('PDFファイルと画像ファイルを選択してください。');
+            showToast('PDFファイルと画像ファイルを選択してください。', 'error');
             return;
         }
 
@@ -106,7 +118,7 @@ export async function setupOptionsListeners() {
 
             const pageNumber = selectedPdfPage;
             if (pageNumber < 1 || pageNumber > pages.length) {
-                alert(`無効なページ番号です。1から${pages.length}の間で指定してください。`);
+                showToast(`無効なページ番号です。1から${pages.length}の間で指定してください。`, 'error');
                 loadingOverlay.style.display = 'none';
                 return;
             }
@@ -114,12 +126,7 @@ export async function setupOptionsListeners() {
 
             const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
-            const marginTop = parseInt(pageMarginTopNumber.value) || 0;
-            const marginBottom = parseInt(pageMarginBottomNumber.value) || 0;
-            const marginLeft = parseInt(pageMarginLeftNumber.value) || 0;
-            const marginRight = parseInt(pageMarginRightNumber.value) || 0;
-            const imageSpacing = parseInt(imageSpacingNumber.value) || 0;
-            const userColumns = parseInt(columnsNumber.value) || 0;
+            const { marginTop, marginBottom, marginLeft, marginRight, imageSpacing, columns: userColumns } = layoutOptions;
 
             const embeddedImages = [];
             for (const imageObj of selectedImageFiles) {
@@ -129,7 +136,7 @@ export async function setupOptionsListeners() {
                 } else if (imageObj.pdfEmbedType === 'image/png') {
                     image = await pdfDoc.embedPng(imageObj.pdfEmbedBytes);
                 } else {
-                    alert(`サポートされていない画像形式です: ${imageObj.file.name} (JPEG, PNG, HEICのみ)`);
+                    showToast(`サポートされていない画像形式です: ${imageObj.file.name} (JPEG, PNG, HEICのみ)`, 'error');
                     loadingOverlay.style.display = 'none';
                     return;
                 }
@@ -157,7 +164,7 @@ export async function setupOptionsListeners() {
             );
 
             if (!placements) {
-                alert('画像をページに配置できませんでした。オプションを調整してください。');
+                showToast('画像をページに配置できませんでした。オプションを調整してください。', 'error');
                 loadingOverlay.style.display = 'none';
                 return;
             }
@@ -217,40 +224,24 @@ export async function setupOptionsListeners() {
 
             await setProcessedPdfBytes(await pdfDoc.save()); // 処理済みPDFを保存
 			
-            alert('画像をPDFに貼り付けました。');
+            showToast('画像をPDFに貼り付けました。', 'success');
             setupPdfPageCarousel(); // プレビューを更新
             resetImageSelection(); // 画像をクリア
 			renderPdfPageAsBackground(); // プレビューを更新
         } catch (error) {
             console.error('Error during PDF processing:', error);
-            alert('PDF処理中にエラーが発生しました。');
+            showToast('PDF処理中にエラーが発生しました。', 'error');
         } finally {
             loadingOverlay.style.display = 'none';
         }
     };
 
     // 初期表示
-    updateRealtimePreview();
+    realtimePreviewContainer.style.aspectRatio = `${pdfPageSize.width} / ${pdfPageSize.height}`;
     if (selectedPdfFile) {
-        // PDFのページサイズを取得してプレビューに反映
-        try {
-            const pdfBytes = await selectedPdfFile.arrayBuffer();
-            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes); // グローバルなPDFLibを使用
-            const pages = pdfDoc.getPages();
-            const firstPage = pages[0];
-            const { width, height } = firstPage.getSize();
-            setPdfPageSize({ width, height }); // utils.jsのsetterを使用
-            realtimePreviewContainer.style.aspectRatio = `${width} / ${height}`;
-            renderPdfPageAsBackground();
-            updateRealtimePreview();
-        } catch (error) {
-            console.error('PDFのページサイズの取得に失敗しました:', error);
-            // pdfPageSize = { width: 595.28, height: 841.89 }; // utils.jsのsetterを使用
-            realtimePreviewContainer.style.aspectRatio = `${pdfPageSize.width} / ${pdfPageSize.height}`;
-            updateRealtimePreview();
-        }
+        renderPdfPageAsBackground();
     } else {
         realtimePreviewContainer.style.backgroundImage = 'none';
-        realtimePreviewContainer.style.aspectRatio = `${pdfPageSize.width} / ${pdfPageSize.height}`;
     }
+    updateRealtimePreview();
 }

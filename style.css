@@ -1132,3 +1132,28 @@ header {
     border-color: #007bff;
     box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
 }
+
+/* --- トースト通知 --- */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95em;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+    max-width: 80%;
+    text-align: center;
+    pointer-events: none;
+}
+.toast.toast-show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.toast.toast-info    { background: #3498db; }
+.toast.toast-success { background: #27ae60; }
+.toast.toast-error   { background: #e74c3c; }

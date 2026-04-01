@@ -1,4 +1,4 @@
-import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, pdfjsLib, setSelectedPdfPage, selectedPdfPage, processedPdfBytes, pdfDocumentInstance, setPdfDocumentInstance } from './utils.js';
+import { getElement, loadingOverlay, selectedImageFiles, setSelectedImageFiles, heicConvert, Buffer, updateRealtimePreview, selectedPdfFile, setSelectedPdfPage, selectedPdfPage, getPdfDocument } from './utils.js';
 import Sortable from 'sortablejs'; // SortableJSをインポート
 
 // Function to display image previews
@@ -354,19 +354,7 @@ export async function renderPdfPageAsBackground() {
 
     try {
         const pageNumber = selectedPdfPage;
-        let pdf;
-		if (pdfDocumentInstance) {
-            pdf = pdfDocumentInstance;
-        } else if (processedPdfBytes) {
-            const loadingTask = pdfjsLib.getDocument({ data: processedPdfBytes.slice(0) });
-            pdf = await loadingTask.promise;
-            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
-        } else { // どちらもない場合はselectedPdfFileからロード
-            const pdfBytes = await selectedPdfFile.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
-            pdf = await loadingTask.promise;
-            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
-        }
+        const pdf = await getPdfDocument();
 
         if (pageNumber < 1 || pageNumber > pdf.numPages) {
             return;
@@ -404,19 +392,7 @@ export async function setupPdfPageCarousel() {
     carouselContainer.innerHTML = ''; // Clear previous content
 
     try {
-        let pdf;
-		if (pdfDocumentInstance) {
-            pdf = pdfDocumentInstance;
-        } else if (processedPdfBytes) {
-            const loadingTask = pdfjsLib.getDocument({ data: processedPdfBytes.slice(0) });
-            pdf = await loadingTask.promise;
-            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
-        } else { // どちらもない場合はselectedPdfFileからロード
-            const pdfBytes = await selectedPdfFile.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice(0) });
-            pdf = await loadingTask.promise;
-            setPdfDocumentInstance(pdf); // 新しくロードされたPDFドキュメントインスタンスをキャッシュ
-        }
+        const pdf = await getPdfDocument();
         const numPages = pdf.numPages;
 
         const renderPromises = [];

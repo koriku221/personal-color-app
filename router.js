@@ -5,47 +5,30 @@ import { setupOptionsListeners } from './options.js';
 import { setupResultListeners } from './result.js';
 import { setupPanelResizer } from './panel-resizer.js'; // 新しいファイルからインポート
 
+const pdfSelectRoute = {
+    title: 'PCレポート作成 - PDF選択',
+    className: 'page-pdf-select',
+    render: () => `
+        <h1>PDFファイルを選択</h1>
+        <div class="input-group">
+            <label for="pdfFile" class="btn btn-border"><span>PDFファイルを選択</span></label>
+            <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
+            <span id="pdfFileName" class="file-name">選択されていません</span>
+        </div>
+        <h2>PDFプレビュー</h2>
+        <div id="pdfPreviewContainer">
+            <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
+        </div>
+        <div class="btn-wrap">
+            <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ</span></a>
+        </div>
+    `,
+    onMount: setupPdfSelectListeners
+};
+
 export const routes = {
-    '/': {
-        title: 'PCレポート作成 - PDF選択',
-        className: 'page-pdf-select',
-        render: () => `
-            <h1>PDFファイルを選択</h1>
-            <div class="input-group">
-                <label for="pdfFile" class="btn btn-border"><span>PDFファイルを選択</span></label>
-                <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
-                <span id="pdfFileName" class="file-name">選択されていません</span>
-            </div>
-            <h2>PDFプレビュー</h2>
-            <div id="pdfPreviewContainer">
-                <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
-            </div>
-            <div class="btn-wrap">
-                <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ</span></a>
-            </div>
-        `,
-        onMount: setupPdfSelectListeners
-    },
-    '/pdf-select': { // '/' と同じ内容だが、明示的なパスとして定義
-        title: 'PCレポート作成 - PDF選択',
-        className: 'page-pdf-select',
-        render: () => `
-            <h1>PDFファイルを選択</h1>
-            <div class="input-group">
-                <label for="pdfFile" class="btn btn-border"><span>PDFファイルを選択</span></label>
-                <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
-                <span id="pdfFileName" class="file-name">選択されていません</span>
-            </div>
-            <h2>PDFプレビュー</h2>
-            <div id="pdfPreviewContainer">
-                <p>PDFファイルを選択するとここにプレビューが表示されます。</p>
-            </div>
-            <div class="btn-wrap">
-                <a id="nextToImageSelect" class="btn btn-stripe"><span>次へ</span></a>
-            </div>
-        `,
-        onMount: setupPdfSelectListeners
-    },
+    '/': pdfSelectRoute,
+    '/pdf-select': pdfSelectRoute,
     '/image-select': {
         title: 'PCレポート作成 - 画像配置',
         className: 'page-image-select',
