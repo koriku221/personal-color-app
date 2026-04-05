@@ -270,10 +270,13 @@ export function setupImageSelectListeners() {
                             format: 'JPEG',
                             quality: 0.9
                         });
-                        pdfEmbedBytes = outputBuffer.buffer;
+                        const heicBlob = new Blob([outputBuffer.buffer], { type: 'image/jpeg' });
+                        const heicRawUrl = URL.createObjectURL(heicBlob);
+                        const correctedBlob = await correctImageOrientation(heicRawUrl, 'image/jpeg');
+                        URL.revokeObjectURL(heicRawUrl);
+                        pdfEmbedBytes = await correctedBlob.arrayBuffer();
                         pdfEmbedType = 'image/jpeg';
-                        const previewBlob = new Blob([pdfEmbedBytes], { type: 'image/jpeg' });
-                        previewUrl = URL.createObjectURL(previewBlob);
+                        previewUrl = URL.createObjectURL(correctedBlob);
                     } catch (error) {
                         console.error(`HEIC変換エラー: ${file.name}`, error);
                         previewUrl = URL.createObjectURL(file);
